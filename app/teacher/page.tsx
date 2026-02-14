@@ -56,8 +56,8 @@ export default function TeacherDashboard() {
     (!selectedSubject || s.subject === selectedSubject)
   );
 
-  const groups = [...new Set(students.map(s => s.group))];
-  const subjects = [...new Set(students.map(s => s.subject))];
+  const groups = Array.from(new Set(students.map(s => s.group)));
+  const subjects = Array.from(new Set(students.map(s => s.subject)));
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
