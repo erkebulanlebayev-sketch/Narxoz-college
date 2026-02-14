@@ -73,7 +73,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
         onLogout={handleLogout}
       />
 
-      <div className="max-w-7xl mx-auto px-4 py-24 relative z-10">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-20 md:py-24 relative z-10">
         {children}
       </div>
     </div>

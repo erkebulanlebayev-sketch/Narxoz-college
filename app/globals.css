@@ -5,6 +5,14 @@
 body {
   @apply bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-900;
   background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
 }
 
 /* Анимации */
@@ -75,6 +83,21 @@ body {
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
 }
 
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .glass-card {
+    padding: 1rem;
+  }
+}
+
 /* Градиентный текст */
 .gradient-text {
   @apply bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent;
@@ -115,4 +138,13 @@ body {
   height: 350px;
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   animation: float 7s ease-in-out infinite;
+}
+
+/* Адаптивные блобы для мобильных */
+@media (max-width: 768px) {
+  .blob-1, .blob-2, .blob-3 {
+    width: 200px;
+    height: 200px;
+    filter: blur(60px);
+  }
 }
