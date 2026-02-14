@@ -47,6 +47,9 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
     { label: 'Новости', href: '/student/news' },
     { label: 'Расписание', href: '/student/schedule' },
     { label: 'Библиотека', href: '/student/library' },
+    { label: 'Оценки', href: '/student/grades' },
+    { label: 'Обменник', href: '/student/exchange' },
+    { label: 'Магазин', href: '/student/shop' },
     { label: 'Профиль', href: '/student/profile' }
   ];
 
