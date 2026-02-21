@@ -74,6 +74,25 @@ CREATE TABLE grades (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Таблица материалов для обменника
+CREATE TABLE materials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  category VARCHAR(50) NOT NULL CHECK (category IN ('notes', 'homework', 'projects', 'exams')),
+  subject VARCHAR(100) NOT NULL,
+  tags TEXT[],
+  file_name VARCHAR(255) NOT NULL,
+  file_path VARCHAR(500) NOT NULL,
+  file_size BIGINT NOT NULL,
+  file_type VARCHAR(100) NOT NULL,
+  author_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  author_name VARCHAR(100) NOT NULL,
+  rating DECIMAL(3,2) DEFAULT 0.0,
+  downloads INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Индексы
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_group ON users(group_id);
@@ -81,6 +100,9 @@ CREATE INDEX idx_schedule_group ON schedule(group_id);
 CREATE INDEX idx_schedule_teacher ON schedule(teacher_id);
 CREATE INDEX idx_grades_student ON grades(student_id);
 CREATE INDEX idx_grades_subject ON grades(subject_id);
+CREATE INDEX idx_materials_author ON materials(author_id);
+CREATE INDEX idx_materials_category ON materials(category);
+CREATE INDEX idx_materials_created ON materials(created_at DESC);
 
 -- Включаем RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -90,6 +112,7 @@ ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auditories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE schedule ENABLE ROW LEVEL SECURITY;
 ALTER TABLE grades ENABLE ROW LEVEL SECURITY;
+ALTER TABLE materials ENABLE ROW LEVEL SECURITY;
 
 -- Политики RLS (упрощенные для начала)
 CREATE POLICY "Allow all for authenticated users" ON users FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -99,6 +122,10 @@ CREATE POLICY "Allow all for authenticated users" ON subjects FOR ALL TO authent
 CREATE POLICY "Allow all for authenticated users" ON auditories FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for authenticated users" ON schedule FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for authenticated users" ON grades FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow read for authenticated users" ON materials FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow insert for authenticated users" ON materials FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow update own materials" ON materials FOR UPDATE TO authenticated USING (auth.uid() = author_id);
+CREATE POLICY "Allow delete own materials" ON materials FOR DELETE TO authenticated USING (auth.uid() = author_id);
 
 -- Триггер для автоматического создания пользователя
 CREATE OR REPLACE FUNCTION handle_new_user()

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Оптимизация рендеринга */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   @apply bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-900;
   background-attachment: fixed;
@@ -15,7 +21,7 @@ body {
   }
 }
 
-/* Анимации */
+/* Оптимизированные анимации с will-change */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -47,18 +53,22 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out;
+  will-change: opacity, transform;
 }
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* Кастомные стили для карточек */
+/* Кастомные стили для карточек с оптимизацией */
 .card-hover {
   @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-2;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(102, 126, 234, 0.2);
+  will-change: transform, box-shadow;
+  contain: layout style paint;
 }
 
 .card-hover:hover {
@@ -69,18 +79,21 @@ body {
 /* Градиентные кнопки */
 .btn-gradient {
   @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105;
+  will-change: transform, box-shadow;
 }
 
 .btn-gradient-secondary {
   @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105;
+  will-change: transform, box-shadow;
 }
 
-/* Стеклянный эффект */
+/* Стеклянный эффект с оптимизацией */
 .glass-effect {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+  contain: layout style paint;
 }
 
 .glass-card {
@@ -90,6 +103,7 @@ body {
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
   border-radius: 1rem;
   padding: 1.5rem;
+  contain: layout style paint;
 }
 
 @media (max-width: 768px) {
@@ -103,7 +117,7 @@ body {
   @apply bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent;
 }
 
-/* Декоративные элементы */
+/* Декоративные элементы с оптимизацией */
 .decorative-blob {
   position: fixed;
   border-radius: 50%;
@@ -111,6 +125,8 @@ body {
   opacity: 0.3;
   pointer-events: none;
   z-index: -1;
+  will-change: transform;
+  contain: layout style paint;
 }
 
 .blob-1 {
@@ -146,5 +162,16 @@ body {
     width: 200px;
     height: 200px;
     filter: blur(60px);
+  }
+}
+
+/* Оптимизация для скроллинга */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

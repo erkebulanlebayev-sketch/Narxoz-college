@@ -266,3 +266,77 @@
   background-color: var(--base);
   color: var(--hover-text, #fff);
 }
+/* Language Switcher Styles */
+.language-switcher-desktop {
+  display: flex;
+  align-items: center;
+}
+
+.lang-switcher-pill {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  cursor: default;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.35rem;
+  transition: all 0.2s ease;
+  color: var(--pill-text);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.lang-btn:hover {
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lang-btn.active {
+  background: rgba(255, 255, 255, 0.3);
+  font-weight: bold;
+}
+
+.language-switcher-mobile {
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+.mobile-lang-switcher {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.mobile-lang-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: inherit;
+  flex: 1;
+}
+
+.mobile-lang-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mobile-lang-btn.active {
+  border-color: currentColor;
+  background: rgba(255, 255, 255, 0.25);
+  font-weight: bold;
+}

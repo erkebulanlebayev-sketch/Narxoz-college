@@ -25,6 +25,8 @@ interface PillNavProps {
   initialLoadAnimation?: boolean;
   onLogout?: () => void;
   userName?: string;
+  currentLang?: string;
+  onLanguageChange?: (lang: string) => void;
 }
 
 const PillNav = ({
@@ -41,7 +43,9 @@ const PillNav = ({
   onMobileMenuClick,
   initialLoadAnimation = true,
   onLogout,
-  userName
+  userName,
+  currentLang = 'ru',
+  onLanguageChange
 }: PillNavProps) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -291,6 +295,25 @@ const PillNav = ({
                 </span>
               </li>
             )}
+            {onLanguageChange && (
+              <li role="none" className="language-switcher-desktop">
+                <div className="pill lang-switcher-pill">
+                  {['kz', 'ru', 'en'].map((lang) => (
+                    <button
+                      key={lang}
+                      className={`lang-btn ${currentLang === lang ? 'active' : ''}`}
+                      onClick={() => onLanguageChange(lang)}
+                      style={{
+                        color: currentLang === lang ? hoveredPillTextColor : resolvedPillTextColor,
+                        fontWeight: currentLang === lang ? 'bold' : 'normal'
+                      }}
+                    >
+                      {lang === 'kz' ? 'ҚАЗ' : lang === 'ru' ? 'РУС' : 'ENG'}
+                    </button>
+                  ))}
+                </div>
+              </li>
+            )}
             {onLogout && (
               <li role="none">
                 <button
@@ -345,6 +368,24 @@ const PillNav = ({
           {userName && (
             <li>
               <span className="mobile-menu-link user-link">👤 {userName}</span>
+            </li>
+          )}
+          {onLanguageChange && (
+            <li className="language-switcher-mobile">
+              <div className="mobile-lang-switcher">
+                {['kz', 'ru', 'en'].map((lang) => (
+                  <button
+                    key={lang}
+                    className={`mobile-lang-btn ${currentLang === lang ? 'active' : ''}`}
+                    onClick={() => {
+                      onLanguageChange(lang);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    {lang === 'kz' ? 'ҚАЗ' : lang === 'ru' ? 'РУС' : 'ENG'}
+                  </button>
+                ))}
+              </div>
             </li>
           )}
           {onLogout && (

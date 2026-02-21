@@ -1,121 +1,168 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
-import Navbar from '@/components/Navbar';
+import { useMemo } from 'react';
+import UniversalLayout from '@/components/UniversalLayout';
+import dynamic from 'next/dynamic';
+import { FiUsers, FiUserCheck, FiCalendar, FiSettings } from 'react-icons/fi';
+
+const Carousel = dynamic(() => import('@/components/Carousel'), {
+  ssr: false,
+  loading: () => <div className="h-64 animate-pulse bg-gray-200 rounded-xl" />
+});
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    const currentUser = await getCurrentUser();
-    if (!currentUser || currentUser.user_metadata?.role !== 'admin') {
-      router.push('/login');
-      return;
+  const carouselItems = useMemo(() => [
+    {
+      title: 'Студенты',
+      description: 'Управление студентами и группами',
+      id: 1,
+      icon: <FiUsers className="carousel-icon" />,
+      href: '/admin/students'
+    },
+    {
+      title: 'Учителя',
+      description: 'Управление преподавателями',
+      id: 2,
+      icon: <FiUserCheck className="carousel-icon" />,
+      href: '/admin/teachers'
+    },
+    {
+      title: 'Расписание',
+      description: 'Создание и редактирование расписания',
+      id: 3,
+      icon: <FiCalendar className="carousel-icon" />,
+      href: '/admin/schedule'
+    },
+    {
+      title: 'Настройки',
+      description: 'Системные настройки',
+      id: 4,
+      icon: <FiSettings className="carousel-icon" />,
+      href: '/admin/settings'
     }
-
-    setUser(currentUser);
-    setLoading(false);
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
-  }
+  ], []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar role="admin" userName={user?.user_metadata?.name} />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md mb-6">
-          <div className="flex border-b">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-semibold ${activeTab === 'overview' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-            >
-              Обзор
-            </button>
-            <button
-              onClick={() => setActiveTab('schedule')}
-              className={`px-6 py-3 font-semibold ${activeTab === 'schedule' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-            >
-              Расписание
-            </button>
-            <button
-              onClick={() => setActiveTab('students')}
-              className={`px-6 py-3 font-semibold ${activeTab === 'students' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-            >
-              Студенты
-            </button>
-            <button
-              onClick={() => setActiveTab('teachers')}
-              className={`px-6 py-3 font-semibold ${activeTab === 'teachers' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-            >
-              Учителя
-            </button>
+    <UniversalLayout role="admin">
+      <div className="mb-8 md:mb-12 animate-fadeIn text-center">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">
+          <span className="gradient-text">Панель администратора</span>
+          <span className="inline-block animate-float ml-2">⚙️</span>
+        </h1>
+        <p className="text-gray-600 text-base md:text-xl">Управление системой Narxoz College</p>
+      </div>
+
+      <div className="mb-8 md:mb-12 flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 w-full lg:w-auto flex-shrink-0">
+          <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 card-hover animate-fadeIn group">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-xs md:text-sm mb-1 md:mb-2 font-medium">Студентов</p>
+                <p className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">156</p>
+              </div>
+              <div className="text-4xl md:text-5xl lg:text-6xl group-hover:scale-110 transition-transform">👥</div>
+            </div>
+            <div className="mt-2 md:mt-3 h-1.5 md:h-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
           </div>
 
-          <div className="p-6">
-            {activeTab === 'overview' && (
+          <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 card-hover animate-fadeIn group" style={{ animationDelay: '0.1s' }}>
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-6">Панель администратора</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-2">Всего студентов</h3>
-                    <p className="text-4xl font-bold">156</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-2">Учителей</h3>
-                    <p className="text-4xl font-bold">24</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-2">Групп</h3>
-                    <p className="text-4xl font-bold">12</p>
+                <p className="text-gray-600 text-xs md:text-sm mb-1 md:mb-2 font-medium">Учителей</p>
+                <p className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">24</p>
+              </div>
+              <div className="text-4xl md:text-5xl lg:text-6xl group-hover:scale-110 transition-transform">👨‍🏫</div>
+            </div>
+            <div className="mt-2 md:mt-3 h-1.5 md:h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
+          </div>
+
+          <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 card-hover animate-fadeIn group" style={{ animationDelay: '0.2s' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-xs md:text-sm mb-1 md:mb-2 font-medium">Групп</p>
+                <p className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">12</p>
+              </div>
+              <div className="text-4xl md:text-5xl lg:text-6xl group-hover:scale-110 transition-transform">📚</div>
+            </div>
+            <div className="mt-2 md:mt-3 h-1.5 md:h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+          </div>
+
+          <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 card-hover animate-fadeIn group" style={{ animationDelay: '0.3s' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-xs md:text-sm mb-1 md:mb-2 font-medium">Предметов</p>
+                <p className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">18</p>
+              </div>
+              <div className="text-4xl md:text-5xl lg:text-6xl group-hover:scale-110 transition-transform">📖</div>
+            </div>
+            <div className="mt-2 md:mt-3 h-1.5 md:h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-full"></div>
+          </div>
+        </div>
+
+        <div className="flex-1 w-full flex flex-col items-center animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+          <Carousel
+            items={carouselItems}
+            baseWidth={450}
+            autoplay={true}
+            autoplayDelay={4000}
+            pauseOnHover={true}
+            loop={true}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 animate-fadeIn shadow-xl">
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <span className="text-2xl md:text-3xl">📊</span>
+            <h2 className="text-xl md:text-2xl font-bold gradient-text">Последние действия</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              { action: 'Добавлен новый студент', user: 'Иванов И.И.', time: '10 минут назад', color: 'from-blue-500 to-indigo-500' },
+              { action: 'Обновлено расписание', user: 'Петрова А.С.', time: '1 час назад', color: 'from-green-500 to-emerald-500' },
+              { action: 'Создана новая группа', user: 'Сидоров П.К.', time: '2 часа назад', color: 'from-purple-500 to-pink-500' },
+            ].map((item, index) => (
+              <div key={index} className="glass-effect rounded-lg p-3 hover:shadow-md transition-all">
+                <div className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${item.color} mt-2`}></div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{item.action}</p>
+                    <p className="text-sm text-gray-600">{item.user} • {item.time}</p>
                   </div>
                 </div>
               </div>
-            )}
+            ))}
+          </div>
+        </div>
 
-            {activeTab === 'schedule' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Управление расписанием</h2>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-4">
-                  Добавить занятие
-                </button>
-                <p className="text-gray-600">Здесь будет форма создания расписания</p>
+        <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 animate-fadeIn shadow-xl" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <span className="text-2xl md:text-3xl">⚠️</span>
+            <h2 className="text-xl md:text-2xl font-bold gradient-text">Требуют внимания</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              { title: 'Незаполненное расписание', desc: 'Группа ИС-23, понедельник', priority: 'high' },
+              { title: 'Ожидают подтверждения', desc: '3 новых заявки на регистрацию', priority: 'medium' },
+              { title: 'Обновление системы', desc: 'Доступна новая версия', priority: 'low' },
+            ].map((item, index) => (
+              <div key={index} className="glass-effect rounded-lg p-3 hover:shadow-md transition-all">
+                <div className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full mt-2 ${
+                    item.priority === 'high' ? 'bg-red-500' :
+                    item.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                  }`}></div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{item.title}</p>
+                    <p className="text-sm text-gray-600">{item.desc}</p>
+                  </div>
+                </div>
               </div>
-            )}
-
-            {activeTab === 'students' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Управление студентами</h2>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 mb-4">
-                  Добавить студента
-                </button>
-                <p className="text-gray-600">Список студентов и их GPA</p>
-              </div>
-            )}
-
-            {activeTab === 'teachers' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Управление учителями</h2>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 mb-4">
-                  Добавить учителя
-                </button>
-                <p className="text-gray-600">Список учителей и их предметов</p>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
-    </div>
+    </UniversalLayout>
   );
 }

@@ -3,8 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from '@/lib/auth';
-import Galaxy from '@/components/Galaxy';
+import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+
+// Динамическая загрузка Galaxy только на клиенте
+const Galaxy = dynamic(() => import('@/components/Galaxy'), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900" />
+});
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,6 +36,11 @@ export default function LoginPage() {
     if (role === 'admin') router.push('/admin');
     else if (role === 'teacher') router.push('/teacher');
     else if (role === 'student') router.push('/student');
+  }
+
+  function handleTestLogin(testEmail: string, testPassword: string) {
+    setEmail(testEmail);
+    setPassword(testPassword);
   }
 
   return (
@@ -96,7 +107,7 @@ export default function LoginPage() {
             as="button"
             type="submit"
             disabled={loading}
-            color="#6366f1"
+            color="#000000"
             speed="4s"
             className="w-full"
             style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
@@ -106,9 +117,36 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <a href="/register" className="text-blue-600 hover:text-blue-700 font-semibold transition">
+          <a href="/register" className="text-gray-900 hover:text-gray-700 font-semibold transition">
             Нет аккаунта? Зарегистрироваться →
           </a>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-sm text-gray-600 text-center mb-3 font-semibold">Тестовые аккаунты:</p>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => handleTestLogin('admin@narxoz.kz', 'admin123')}
+              className="w-full px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-medium"
+            >
+              ⚙️ Администратор
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTestLogin('teacher@narxoz.kz', 'teacher123')}
+              className="w-full px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-medium"
+            >
+              👨‍🏫 Преподаватель
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTestLogin('student@narxoz.kz', 'student123')}
+              className="w-full px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-medium"
+            >
+              👨‍🎓 Студент
+            </button>
+          </div>
         </div>
       </div>
     </div>

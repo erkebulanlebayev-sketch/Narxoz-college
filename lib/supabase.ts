@@ -58,3 +58,23 @@ export interface Grade {
   grade: number;
   date: string;
 }
+
+export type MaterialCategory = 'notes' | 'homework' | 'projects' | 'exams';
+
+export interface Material {
+  id: string;
+  title: string;
+  description: string;
+  category: MaterialCategory;
+  subject: string;
+  tags: string[];
+  file_name: string;
+  file_path: string;
+  file_size: number;
+  file_type: string;
+  author_id: string;
+  author_name: string;
+  rating: number;
+  downloads: number;
+  created_at: string;
+}

@@ -3,8 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/auth';
-import Galaxy from '@/components/Galaxy';
+import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+
+// Динамическая загрузка Galaxy только на клиенте
+const Galaxy = dynamic(() => import('@/components/Galaxy'), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-900 to-red-900" />
+});
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -135,7 +141,7 @@ export default function RegisterPage() {
             as="button"
             type="submit"
             disabled={loading}
-            color="magenta"
+            color="#000000"
             speed="4s"
             className="w-full"
             style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
@@ -145,7 +151,7 @@ export default function RegisterPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <a href="/login" className="text-purple-600 hover:text-purple-700 font-semibold transition">
+          <a href="/login" className="text-gray-900 hover:text-gray-700 font-semibold transition">
             Уже есть аккаунт? Войти →
           </a>
         </div>

@@ -1,9 +1,12 @@
-import './globals.css';
 import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Система управления колледжем',
-  description: 'Умное расписание и учет оценок',
+  title: 'Narxoz College - Система управления',
+  description: 'Современная система управления учебным процессом',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -13,7 +16,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+      </head>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
