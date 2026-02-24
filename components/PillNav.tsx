@@ -298,7 +298,7 @@ const PillNav = ({
             {onLanguageChange && (
               <li role="none" className="language-switcher-desktop">
                 <div className="pill lang-switcher-pill">
-                  {['kz', 'ru', 'en'].map((lang) => (
+                  {['kz', 'ru'].map((lang) => (
                     <button
                       key={lang}
                       className={`lang-btn ${currentLang === lang ? 'active' : ''}`}
@@ -308,7 +308,7 @@ const PillNav = ({
                         fontWeight: currentLang === lang ? 'bold' : 'normal'
                       }}
                     >
-                      {lang === 'kz' ? 'ҚАЗ' : lang === 'ru' ? 'РУС' : 'ENG'}
+                      {lang === 'kz' ? 'ҚАЗ' : 'РУС'}
                     </button>
                   ))}
                 </div>
@@ -373,7 +373,7 @@ const PillNav = ({
           {onLanguageChange && (
             <li className="language-switcher-mobile">
               <div className="mobile-lang-switcher">
-                {['kz', 'ru', 'en'].map((lang) => (
+                {['kz', 'ru'].map((lang) => (
                   <button
                     key={lang}
                     className={`mobile-lang-btn ${currentLang === lang ? 'active' : ''}`}
@@ -382,7 +382,7 @@ const PillNav = ({
                       setIsMobileMenuOpen(false);
                     }}
                   >
-                    {lang === 'kz' ? 'ҚАЗ' : lang === 'ru' ? 'РУС' : 'ENG'}
+                    {lang === 'kz' ? 'ҚАЗ' : 'РУС'}
                   </button>
                 ))}
               </div>

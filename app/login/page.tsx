@@ -106,16 +106,6 @@ export default function LoginPage() {
         >
           РУС
         </button>
-        <button
-          onClick={() => changeLanguage('en')}
-          className={`px-3 py-1 rounded-lg font-medium transition-all ${
-            language === 'en'
-              ? 'bg-white text-blue-600 shadow-md'
-              : 'bg-white/20 text-white hover:bg-white/30'
-          }`}
-        >
-          ENG
-        </button>
       </div>
       
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
