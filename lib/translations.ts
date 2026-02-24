@@ -1,5 +1,6 @@
 export const translations = {
   kz: {
+    // Navigation
     home: 'Басты бет',
     news: 'Жаңалықтар',
     schedule: 'Кесте',
@@ -15,6 +16,7 @@ export const translations = {
     settings: 'Баптаулар',
     logout: 'Шығу',
     loading: 'Жүктелуде...',
+    
     // Login/Register pages
     login: 'Кіру',
     register: 'Тіркелу',
@@ -42,8 +44,105 @@ export const translations = {
     forgotPasswordDesc: 'Қалпына келтіру үшін email енгізіңіз',
     newPasswordTitle: 'Жаңа құпия сөз',
     newPasswordDesc: 'Аккаунт үшін жаңа құпия сөз енгізіңіз',
+    
+    // Home page
+    welcome: 'Қош келдіңіз',
+    welcomeMessage: 'Narxoz College жүйесінде сізді көргенімізге қуаныштымыз',
+    averageGrade: 'Орташа балл',
+    attendance: 'Қатысу',
+    subjects: 'Пәндер',
+    newAssignments: 'Жаңа тапсырмалар',
+    todaySchedule: 'Бүгінгі кесте',
+    viewSchedule: 'Кестені қарау',
+    checkGrades: 'Бағаларды тексеру',
+    collegeNews: 'Колледж жаңалықтары',
+    ebooks: 'Электрондық оқулықтар',
+    
+    // Common
+    search: 'Іздеу',
+    filter: 'Сүзгі',
+    all: 'Барлығы',
+    save: 'Сақтау',
+    cancel: 'Болдырмау',
+    delete: 'Жою',
+    edit: 'Өңдеу',
+    add: 'Қосу',
+    download: 'Жүктеп алу',
+    upload: 'Жүктеу',
+    view: 'Қарау',
+    close: 'Жабу',
+    
+    // Shop
+    shopTitle: 'Narxoz Дүкені',
+    shopDesc: 'Колледж атрибутикасы мен керек-жарақтары',
+    cart: 'Себет',
+    total: 'Жалпы',
+    checkout: 'Тапсырыс беру',
+    addToCart: 'Себетке қосу',
+    inCart: 'Себетте',
+    outOfStock: 'Қоймада жоқ',
+    
+    // Exchange
+    exchangeTitle: 'Білім айырбасы',
+    exchangeDesc: 'Материалдармен бөлісіңіз және бір-біріңізге көмектесіңіз',
+    allMaterials: 'Барлық материалдар',
+    myUploads: 'Менің жүктеулерім',
+    uploadMaterial: 'Материал жүктеу',
+    materialTitle: 'Материал атауы',
+    description: 'Сипаттама',
+    category: 'Санат',
+    subject: 'Пән',
+    tags: 'Тегтер',
+    file: 'Файл',
+    notes: 'Конспектілер',
+    homework: 'Үй тапсырмалары',
+    projects: 'Жобалар',
+    exams: 'Емтихандар',
+    
+    // Grades
+    gradesTitle: 'Менің бағаларым',
+    gradesDesc: 'Үлгеріміңіз бен орташа баллыңыз',
+    gpa: 'GPA',
+    lectureGrades: 'Дәріс бағалары',
+    srspGrades: 'СРСП бағалары',
+    srsGrades: 'СРС бағалары',
+    sessionGrades: 'Сессия бағалары',
+    
+    // Library
+    libraryTitle: 'Кітапхана',
+    libraryDesc: 'Электрондық оқулықтар мен материалдар',
+    searchBooks: 'Кітаптарды іздеу',
+    
+    // News
+    newsTitle: 'Жаңалықтар',
+    newsDesc: 'Колледждің өзекті жаңалықтары мен хабарландырулары',
+    readMore: 'Толығырақ оқу',
+    
+    // Schedule
+    scheduleTitle: 'Сабақ кестесі',
+    scheduleDesc: 'Апта бойынша сабақтар кестесі',
+    monday: 'Дүйсенбі',
+    tuesday: 'Сейсенбі',
+    wednesday: 'Сәрсенбі',
+    thursday: 'Бейсенбі',
+    friday: 'Жұма',
+    saturday: 'Сенбі',
+    sunday: 'Жексенбі',
+    room: 'Аудитория',
+    time: 'Уақыт',
+    
+    // Profile
+    profileTitle: 'Профиль',
+    personalInfo: 'Жеке ақпарат',
+    changeAvatar: 'Аватарды өзгерту',
+    fullName: 'Толық аты',
+    group: 'Топ',
+    phone: 'Телефон',
+    address: 'Мекенжай',
+    saveChanges: 'Өзгерістерді сақтау',
   },
   ru: {
+    // Navigation
     home: 'Главная',
     news: 'Новости',
     schedule: 'Расписание',
@@ -59,6 +158,7 @@ export const translations = {
     settings: 'Настройки',
     logout: 'Выйти',
     loading: 'Загрузка...',
+    
     // Login/Register pages
     login: 'Войти',
     register: 'Регистрация',
@@ -86,52 +186,104 @@ export const translations = {
     forgotPasswordDesc: 'Введите ваш email для восстановления',
     newPasswordTitle: 'Новый пароль',
     newPasswordDesc: 'Введите новый пароль для вашего аккаунта',
-  },
-  en: {
-    home: 'Home',
-    news: 'News',
-    schedule: 'Schedule',
-    library: 'Library',
-    grades: 'Grades',
-    exchange: 'Exchange',
-    shop: 'Shop',
-    profile: 'Profile',
-    students: 'Students',
-    materials: 'Materials',
-    teachers: 'Teachers',
-    users: 'Users',
-    settings: 'Settings',
-    logout: 'Logout',
-    loading: 'Loading...',
-    // Login/Register pages
-    login: 'Login',
-    register: 'Register',
-    email: 'Email',
-    password: 'Password',
-    confirmPassword: 'Confirm Password',
-    name: 'Name',
-    forgotPassword: 'Forgot password?',
-    noAccount: 'No account?',
-    haveAccount: 'Have an account?',
-    registerLink: 'Register →',
-    loginLink: '← Back to login',
-    sendEmail: 'Send email',
-    changePassword: 'Change password',
-    newPassword: 'New password',
-    resetPassword: 'Reset password',
-    backToLogin: '← Back to login',
-    testAccounts: 'Test accounts:',
-    admin: 'Administrator',
-    teacher: 'Teacher',
-    student: 'Student',
-    enterAccount: 'Enter your account',
-    createAccount: 'Create an account',
-    forgotPasswordTitle: 'Forgot password?',
-    forgotPasswordDesc: 'Enter your email to recover',
-    newPasswordTitle: 'New password',
-    newPasswordDesc: 'Enter new password for your account',
+    
+    // Home page
+    welcome: 'Добро пожаловать',
+    welcomeMessage: 'Рады видеть вас в системе Narxoz College',
+    averageGrade: 'Средний балл',
+    attendance: 'Посещаемость',
+    subjects: 'Предметов',
+    newAssignments: 'Новых заданий',
+    todaySchedule: 'Расписание на сегодня',
+    viewSchedule: 'Посмотреть расписание',
+    checkGrades: 'Проверить успеваемость',
+    collegeNews: 'Новости колледжа',
+    ebooks: 'Электронные учебники',
+    
+    // Common
+    search: 'Поиск',
+    filter: 'Фильтр',
+    all: 'Все',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    delete: 'Удалить',
+    edit: 'Редактировать',
+    add: 'Добавить',
+    download: 'Скачать',
+    upload: 'Загрузить',
+    view: 'Просмотр',
+    close: 'Закрыть',
+    
+    // Shop
+    shopTitle: 'Narxoz Shop',
+    shopDesc: 'Атрибутика и принадлежности колледжа',
+    cart: 'Корзина',
+    total: 'Итого',
+    checkout: 'Оформить заказ',
+    addToCart: 'В корзину',
+    inCart: 'В корзине',
+    outOfStock: 'Нет в наличии',
+    
+    // Exchange
+    exchangeTitle: 'Обменник знаниями',
+    exchangeDesc: 'Делитесь материалами и помогайте друг другу',
+    allMaterials: 'Все материалы',
+    myUploads: 'Мои загрузки',
+    uploadMaterial: 'Загрузить материал',
+    materialTitle: 'Название материала',
+    description: 'Описание',
+    category: 'Категория',
+    subject: 'Предмет',
+    tags: 'Теги',
+    file: 'Файл',
+    notes: 'Конспекты',
+    homework: 'Домашки',
+    projects: 'Проекты',
+    exams: 'Экзамены',
+    
+    // Grades
+    gradesTitle: 'Мои оценки',
+    gradesDesc: 'Ваша успеваемость и средний балл',
+    gpa: 'GPA',
+    lectureGrades: 'Оценки за лекции',
+    srspGrades: 'Оценки СРСП',
+    srsGrades: 'Оценки СРС',
+    sessionGrades: 'Оценки сессии',
+    
+    // Library
+    libraryTitle: 'Библиотека',
+    libraryDesc: 'Электронные учебники и материалы',
+    searchBooks: 'Поиск книг',
+    
+    // News
+    newsTitle: 'Новости',
+    newsDesc: 'Актуальные новости и объявления колледжа',
+    readMore: 'Читать далее',
+    
+    // Schedule
+    scheduleTitle: 'Расписание занятий',
+    scheduleDesc: 'Расписание занятий на неделю',
+    monday: 'Понедельник',
+    tuesday: 'Вторник',
+    wednesday: 'Среда',
+    thursday: 'Четверг',
+    friday: 'Пятница',
+    saturday: 'Суббота',
+    sunday: 'Воскресенье',
+    room: 'Аудитория',
+    time: 'Время',
+    
+    // Profile
+    profileTitle: 'Профиль',
+    personalInfo: 'Личная информация',
+    changeAvatar: 'Изменить аватар',
+    fullName: 'Полное имя',
+    group: 'Группа',
+    phone: 'Телефон',
+    address: 'Адрес',
+    saveChanges: 'Сохранить изменения',
   }
 };
 
-export type Language = keyof typeof translations;
+export type Language = 'kz' | 'ru';
 export type TranslationKey = keyof typeof translations.ru;
