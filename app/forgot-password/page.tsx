@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+import { translations, Language } from '@/lib/translations';
 
 const Galaxy = dynamic(() => import('@/components/Galaxy'), {
   ssr: false,
@@ -15,6 +16,23 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [language, setLanguage] = useState<Language>('ru');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedLang = localStorage.getItem('language') as Language;
+    if (savedLang && translations[savedLang]) {
+      setLanguage(savedLang);
+    }
+  }, []);
+
+  const t = translations[language];
+
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,13 +47,23 @@ export default function ForgotPasswordPage() {
 
       if (error) throw error;
 
-      setMessage('Письмо для сброса пароля отправлено! Проверьте вашу почту.');
+      const successMsg = language === 'kz' 
+        ? 'Құпия сөзді қалпына келтіру хаты жіберілді! Поштаңызды тексеріңіз.'
+        : language === 'ru'
+        ? 'Письмо для сброса пароля отправлено! Проверьте вашу почту.'
+        : 'Password reset email sent! Check your inbox.';
+      
+      setMessage(successMsg);
       setEmail('');
     } catch (error: any) {
       setError(error.message || 'Ошибка при отправке письма');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!mounted) {
+    return null;
   }
 
   return (
@@ -56,19 +84,53 @@ export default function ForgotPasswordPage() {
           speed={1}
         />
       </div>
+
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20 flex gap-2">
+        <button
+          onClick={() => changeLanguage('kz')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'kz'
+              ? 'bg-white text-blue-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          ҚАЗ
+        </button>
+        <button
+          onClick={() => changeLanguage('ru')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'ru'
+              ? 'bg-white text-blue-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          РУС
+        </button>
+        <button
+          onClick={() => changeLanguage('en')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'en'
+              ? 'bg-white text-blue-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          ENG
+        </button>
+      </div>
       
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔐</div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Забыли пароль?
+            {t.forgotPasswordTitle}
           </h1>
-          <p className="text-gray-600">Введите ваш email для восстановления</p>
+          <p className="text-gray-600">{t.forgotPasswordDesc}</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.email}</label>
             <input
               type="email"
               value={email}
@@ -100,13 +162,13 @@ export default function ForgotPasswordPage() {
             className="w-full"
             style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
           >
-            {loading ? 'Отправка...' : 'Отправить письмо'}
+            {loading ? `${t.loading}` : t.sendEmail}
           </StarBorder>
         </form>
 
         <div className="mt-6 text-center space-y-2">
           <a href="/login" className="block text-gray-900 hover:text-gray-700 font-semibold transition">
-            ← Вернуться к входу
+            {t.backToLogin}
           </a>
         </div>
       </div>

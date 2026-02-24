@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/auth';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+import { translations, Language } from '@/lib/translations';
 
-// Динамическая загрузка Galaxy только на клиенте
 const Galaxy = dynamic(() => import('@/components/Galaxy'), {
   ssr: false,
   loading: () => <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-900 to-red-900" />
@@ -20,6 +20,23 @@ export default function RegisterPage() {
   const [role, setRole] = useState<'student' | 'teacher'>('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState<Language>('ru');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedLang = localStorage.getItem('language') as Language;
+    if (savedLang && translations[savedLang]) {
+      setLanguage(savedLang);
+    }
+  }, []);
+
+  const t = translations[language];
+
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +52,10 @@ export default function RegisterPage() {
     }
 
     router.push('/login');
+  }
+
+  if (!mounted) {
+    return null;
   }
 
   return (
@@ -56,31 +77,65 @@ export default function RegisterPage() {
           speed={1}
         />
       </div>
+
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20 flex gap-2">
+        <button
+          onClick={() => changeLanguage('kz')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'kz'
+              ? 'bg-white text-purple-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          ҚАЗ
+        </button>
+        <button
+          onClick={() => changeLanguage('ru')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'ru'
+              ? 'bg-white text-purple-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          РУС
+        </button>
+        <button
+          onClick={() => changeLanguage('en')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'en'
+              ? 'bg-white text-purple-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          ENG
+        </button>
+      </div>
       
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">✨</div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-            Регистрация
+            {t.register}
           </h1>
-          <p className="text-gray-600">Создайте новый аккаунт</p>
+          <p className="text-gray-600">{t.createAccount}</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Имя</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.name}</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white/90"
-              placeholder="Ваше имя"
+              placeholder={t.name}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.email}</label>
             <input
               type="email"
               value={email}
@@ -92,7 +147,7 @@ export default function RegisterPage() {
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Пароль</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.password}</label>
             <input
               type="password"
               value={password}
@@ -104,7 +159,9 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Роль</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {language === 'kz' ? 'Рөл' : language === 'ru' ? 'Роль' : 'Role'}
+            </label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -115,7 +172,7 @@ export default function RegisterPage() {
                     : 'bg-white/90 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
                 }`}
               >
-                👨‍🎓 Студент
+                👨‍🎓 {t.student}
               </button>
               <button
                 type="button"
@@ -126,7 +183,7 @@ export default function RegisterPage() {
                     : 'bg-white/90 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
                 }`}
               >
-                👨‍🏫 Преподаватель
+                👨‍🏫 {t.teacher}
               </button>
             </div>
           </div>
@@ -146,17 +203,16 @@ export default function RegisterPage() {
             className="w-full"
             style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
           >
-            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+            {loading ? `${t.loading}` : t.register}
           </StarBorder>
         </form>
 
         <div className="mt-6 text-center">
           <a href="/login" className="text-gray-900 hover:text-gray-700 font-semibold transition">
-            Уже есть аккаунт? Войти →
+            {t.haveAccount} {t.loginLink}
           </a>
         </div>
       </div>
     </div>
   );
 }
-

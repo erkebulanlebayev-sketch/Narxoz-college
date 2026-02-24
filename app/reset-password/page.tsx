@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+import { translations, Language } from '@/lib/translations';
 
 const Galaxy = dynamic(() => import('@/components/Galaxy'), {
   ssr: false,
@@ -19,8 +20,16 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isValidSession, setIsValidSession] = useState(false);
+  const [language, setLanguage] = useState<Language>('ru');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    const savedLang = localStorage.getItem('language') as Language;
+    if (savedLang && translations[savedLang]) {
+      setLanguage(savedLang);
+    }
+
     // Проверяем, есть ли активная сессия восстановления пароля
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
@@ -31,20 +40,39 @@ export default function ResetPasswordPage() {
     });
   }, []);
 
+  const t = translations[language];
+
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
 
+    const passwordMismatch = language === 'kz' 
+      ? 'Құпия сөздер сәйкес келмейді'
+      : language === 'ru'
+      ? 'Пароли не совпадают'
+      : 'Passwords do not match';
+
+    const passwordTooShort = language === 'kz'
+      ? 'Құпия сөз кемінде 6 таңбадан тұруы керек'
+      : language === 'ru'
+      ? 'Пароль должен содержать минимум 6 символов'
+      : 'Password must be at least 6 characters';
+
     if (password !== confirmPassword) {
-      setError('Пароли не совпадают');
+      setError(passwordMismatch);
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
+      setError(passwordTooShort);
       setLoading(false);
       return;
     }
@@ -56,7 +84,13 @@ export default function ResetPasswordPage() {
 
       if (error) throw error;
 
-      setMessage('Пароль успешно изменен! Перенаправление...');
+      const successMsg = language === 'kz'
+        ? 'Құпия сөз сәтті өзгертілді! Бағыттау...'
+        : language === 'ru'
+        ? 'Пароль успешно изменен! Перенаправление...'
+        : 'Password changed successfully! Redirecting...';
+
+      setMessage(successMsg);
       
       setTimeout(() => {
         router.push('/login');
@@ -69,12 +103,16 @@ export default function ResetPasswordPage() {
     }
   }
 
+  if (!mounted) {
+    return null;
+  }
+
   if (!isValidSession && !error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-gray-600">Проверка...</p>
+          <p className="text-gray-600">{t.loading}</p>
         </div>
       </div>
     );
@@ -98,20 +136,54 @@ export default function ResetPasswordPage() {
           speed={1}
         />
       </div>
+
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20 flex gap-2">
+        <button
+          onClick={() => changeLanguage('kz')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'kz'
+              ? 'bg-white text-blue-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          ҚАЗ
+        </button>
+        <button
+          onClick={() => changeLanguage('ru')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'ru'
+              ? 'bg-white text-blue-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          РУС
+        </button>
+        <button
+          onClick={() => changeLanguage('en')}
+          className={`px-3 py-1 rounded-lg font-medium transition-all ${
+            language === 'en'
+              ? 'bg-white text-blue-600 shadow-md'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          ENG
+        </button>
+      </div>
       
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔑</div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Новый пароль
+            {t.newPasswordTitle}
           </h1>
-          <p className="text-gray-600">Введите новый пароль для вашего аккаунта</p>
+          <p className="text-gray-600">{t.newPasswordDesc}</p>
         </div>
         
         {isValidSession ? (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Новый пароль</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.newPassword}</label>
               <input
                 type="password"
                 value={password}
@@ -124,7 +196,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Подтвердите пароль</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t.confirmPassword}</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -157,7 +229,7 @@ export default function ResetPasswordPage() {
               className="w-full"
               style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
             >
-              {loading ? 'Сохранение...' : 'Изменить пароль'}
+              {loading ? `${t.loading}` : t.changePassword}
             </StarBorder>
           </form>
         ) : (
@@ -166,14 +238,14 @@ export default function ResetPasswordPage() {
               <p className="text-red-700 text-sm">{error}</p>
             </div>
             <a href="/forgot-password" className="text-gray-900 hover:text-gray-700 font-semibold transition">
-              Запросить новую ссылку →
+              {language === 'kz' ? 'Жаңа сілтеме сұрау →' : language === 'ru' ? 'Запросить новую ссылку →' : 'Request new link →'}
             </a>
           </div>
         )}
 
         <div className="mt-6 text-center">
           <a href="/login" className="text-gray-900 hover:text-gray-700 font-semibold transition">
-            ← Вернуться к входу
+            {t.backToLogin}
           </a>
         </div>
       </div>
