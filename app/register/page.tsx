@@ -84,7 +84,7 @@ export default function RegisterPage() {
           onClick={() => changeLanguage('kz')}
           className={`px-3 py-1 rounded-lg font-medium transition-all ${
             language === 'kz'
-              ? 'bg-white text-purple-600 shadow-md'
+              ? 'bg-white text-red-600 shadow-md'
               : 'bg-white/20 text-white hover:bg-white/30'
           }`}
         >
@@ -94,7 +94,7 @@ export default function RegisterPage() {
           onClick={() => changeLanguage('ru')}
           className={`px-3 py-1 rounded-lg font-medium transition-all ${
             language === 'ru'
-              ? 'bg-white text-purple-600 shadow-md'
+              ? 'bg-white text-red-600 shadow-md'
               : 'bg-white/20 text-white hover:bg-white/30'
           }`}
         >
@@ -105,7 +105,7 @@ export default function RegisterPage() {
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">✨</div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-black bg-clip-text text-transparent mb-2">
             {t.register}
           </h1>
           <p className="text-gray-600">{t.createAccount}</p>
@@ -158,7 +158,7 @@ export default function RegisterPage() {
                 onClick={() => setRole('student')}
                 className={`py-3 px-4 rounded-lg font-medium transition-all ${
                   role === 'student'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-gray-800 to-black text-white shadow-md'
                     : 'bg-white/90 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
                 }`}
               >
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                 onClick={() => setRole('teacher')}
                 className={`py-3 px-4 rounded-lg font-medium transition-all ${
                   role === 'teacher'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-gray-800 to-black text-white shadow-md'
                     : 'bg-white/90 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
                 }`}
               >

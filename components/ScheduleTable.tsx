@@ -37,7 +37,7 @@ export default function ScheduleTable({ schedule, selectedDay }: ScheduleTablePr
         
         return (
           <div key={day} className="mb-6">
-            <h3 className="text-xl font-semibold mb-3 text-blue-600">{day}</h3>
+            <h3 className="text-xl font-semibold mb-3 text-red-600">{day}</h3>
             <div className="space-y-2">
               {daySchedule.length > 0 ? (
                 daySchedule.map(item => (
@@ -49,7 +49,7 @@ export default function ScheduleTable({ schedule, selectedDay }: ScheduleTablePr
                         <p className="text-gray-600">Аудитория: {item.auditory}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-blue-600">{item.time}</p>
+                        <p className="font-semibold text-red-600">{item.time}</p>
                       </div>
                     </div>
                   </div>

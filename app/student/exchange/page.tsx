@@ -251,7 +251,7 @@ export default function ExchangePage() {
     <StudentLayout>
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 via-purple-600 to-black bg-clip-text text-transparent mb-2">
             🔄 Обменник знаниями
           </h1>
           <p className="text-gray-600">Делитесь материалами и помогайте друг другу</p>
@@ -263,7 +263,7 @@ export default function ExchangePage() {
             onClick={() => setActiveTab('all')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'all'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                ? 'bg-gradient-to-r from-red-600 to-purple-600 text-white shadow-lg'
                 : 'glass-card hover:scale-105'
             }`}
           >
@@ -273,7 +273,7 @@ export default function ExchangePage() {
             onClick={() => setActiveTab('my')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'my'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                ? 'bg-gradient-to-r from-red-600 to-purple-600 text-white shadow-lg'
                 : 'glass-card hover:scale-105'
             }`}
           >
@@ -291,7 +291,7 @@ export default function ExchangePage() {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     selectedCategory === cat.id
-                      ? 'bg-white text-purple-600 shadow-md'
+                      ? 'bg-white text-red-600 shadow-md'
                       : 'glass-card hover:scale-105'
                   }`}
                 >
@@ -322,7 +322,7 @@ export default function ExchangePage() {
                         <p className="text-gray-600 text-sm mb-3">{material.description}</p>
                         <div className="flex flex-wrap gap-2 mb-3">
                           {material.tags.map((tag, i) => (
-                            <span key={i} className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-medium">
+                            <span key={i} className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">
                               #{tag}
                             </span>
                           ))}
@@ -347,7 +347,7 @@ export default function ExchangePage() {
                     <div className="flex gap-3">
                       <button 
                         onClick={() => handleDownload(material)}
-                        className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:shadow-lg transition-all"
+                        className="flex-1 bg-gradient-to-r from-red-600 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:shadow-lg transition-all"
                       >
                         📥 Скачать
                       </button>
@@ -368,7 +368,7 @@ export default function ExchangePage() {
               <p className="text-gray-600 mb-4">Помогите другим студентам и заработайте репутацию</p>
               <button 
                 onClick={() => setShowUploadModal(true)}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-red-600 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold hover:shadow-lg transition-all"
               >
                 ➕ Загрузить материал
               </button>
@@ -391,7 +391,7 @@ export default function ExchangePage() {
                         <p className="text-gray-600 text-sm mb-3">{material.description}</p>
                         <div className="flex flex-wrap gap-2 mb-3">
                           {material.tags.map((tag, i) => (
-                            <span key={i} className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-medium">
+                            <span key={i} className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">
                               #{tag}
                             </span>
                           ))}
@@ -558,7 +558,7 @@ export default function ExchangePage() {
                 <button
                   onClick={handleUpload}
                   disabled={!uploadForm.title || !uploadForm.description || !uploadForm.subject || !uploadForm.file || uploading}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-red-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? '⏳ Загрузка...' : '📤 Загрузить'}
                 </button>

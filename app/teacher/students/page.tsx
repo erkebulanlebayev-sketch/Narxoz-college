@@ -71,7 +71,7 @@ export default function TeacherStudentsPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-gray-600">Посещаемость</p>
-                      <p className="text-xl font-bold text-blue-600">{student.attendance}%</p>
+                      <p className="text-xl font-bold text-red-600">{student.attendance}%</p>
                     </div>
                   </div>
                 </div>

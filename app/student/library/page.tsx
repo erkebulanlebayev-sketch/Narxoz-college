@@ -51,7 +51,7 @@ export default function StudentLibraryPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-gray-800 to-black text-white shadow-lg'
                   : 'glass-effect text-gray-700 hover:shadow-md'
               }`}
             >

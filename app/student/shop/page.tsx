@@ -171,7 +171,7 @@ export default function ShopPage() {
     <StudentLayout>
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 via-purple-600 to-black bg-clip-text text-transparent mb-2">
             🛍️ Narxoz Shop
           </h1>
           <p className="text-gray-600">Официальный магазин колледжа</p>
@@ -189,7 +189,7 @@ export default function ShopPage() {
                 <div className="text-sm text-gray-500">Итого:</div>
                 <div className="text-3xl font-bold gradient-text">{totalPrice.toLocaleString()} ₸</div>
               </div>
-              <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold hover:shadow-lg transition-all">
+              <button className="bg-gradient-to-r from-red-600 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold hover:shadow-lg transition-all">
                 Оформить заказ
               </button>
             </div>
@@ -204,7 +204,7 @@ export default function ShopPage() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 selectedCategory === cat.id
-                  ? 'bg-white text-purple-600 shadow-md'
+                  ? 'bg-white text-red-600 shadow-md'
                   : 'glass-card hover:scale-105'
               }`}
             >
@@ -259,7 +259,7 @@ export default function ShopPage() {
                     cart.includes(product.id)
                       ? 'bg-green-600 text-white'
                       : product.inStock
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg'
+                      ? 'bg-gradient-to-r from-red-600 to-purple-600 text-white hover:shadow-lg'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >

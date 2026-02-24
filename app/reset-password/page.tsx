@@ -143,7 +143,7 @@ export default function ResetPasswordPage() {
           onClick={() => changeLanguage('kz')}
           className={`px-3 py-1 rounded-lg font-medium transition-all ${
             language === 'kz'
-              ? 'bg-white text-blue-600 shadow-md'
+              ? 'bg-white text-red-600 shadow-md'
               : 'bg-white/20 text-white hover:bg-white/30'
           }`}
         >
@@ -153,7 +153,7 @@ export default function ResetPasswordPage() {
           onClick={() => changeLanguage('ru')}
           className={`px-3 py-1 rounded-lg font-medium transition-all ${
             language === 'ru'
-              ? 'bg-white text-blue-600 shadow-md'
+              ? 'bg-white text-red-600 shadow-md'
               : 'bg-white/20 text-white hover:bg-white/30'
           }`}
         >
@@ -164,7 +164,7 @@ export default function ResetPasswordPage() {
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔑</div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-2">
             {t.newPasswordTitle}
           </h1>
           <p className="text-gray-600">{t.newPasswordDesc}</p>

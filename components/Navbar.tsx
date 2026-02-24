@@ -58,7 +58,7 @@ export default function Navbar({ role, userName }: NavbarProps) {
           <div className="flex items-center gap-3">
             <div className="text-3xl">🎓</div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent">
                 Narxoz College
               </h1>
               <p className="text-xs text-gray-500">{roleNames[role as keyof typeof roleNames]}</p>
@@ -72,7 +72,7 @@ export default function Navbar({ role, userName }: NavbarProps) {
                 href={item.href}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                   pathname === item.href
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -106,7 +106,7 @@ export default function Navbar({ role, userName }: NavbarProps) {
               href={item.href}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-all ${
                 pathname === item.href
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md'
                   : 'bg-gray-100 text-gray-700'
               }`}
             >
