@@ -42,7 +42,7 @@ export default function TeacherNewsPage() {
           {news.map((item, index) => (
             <div 
               key={item.id} 
-              className={`glass-effect rounded-xl p-6 hover:shadow-lg transition-all animate-fadeIn ${
+              className={`ferris-card rounded-xl p-6 hover:shadow-lg transition-all animate-fadeIn ${
                 item.important ? 'border-2 border-red-300' : ''
               }`}
               style={{ animationDelay: `${index * 0.1}s` }}

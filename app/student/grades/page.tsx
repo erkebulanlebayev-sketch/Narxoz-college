@@ -83,7 +83,7 @@ export default function GradesPage() {
         </div>
 
         {/* Общий средний балл */}
-        <div className="glass-card p-6 text-center">
+        <div className="ferris-card p-6 text-center">
           <div className="text-6xl mb-2">🎯</div>
           <h2 className="text-2xl font-bold mb-2">Общий средний балл</h2>
           <div className={`text-5xl font-bold ${getGradeColor(parseFloat(totalAverage))}`}>
@@ -110,7 +110,7 @@ export default function GradesPage() {
           {subjects.map((subject, idx) => {
             const avg = calculateAverage(subject.grades);
             return (
-              <div key={idx} className="glass-card p-6 hover:scale-[1.02] transition-transform">
+              <div key={idx} className="ferris-card p-6 hover:scale-[1.02] transition-transform">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-bold gradient-text">{subject.name}</h3>

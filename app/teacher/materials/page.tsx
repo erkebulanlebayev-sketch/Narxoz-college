@@ -41,7 +41,7 @@ export default function TeacherMaterialsPage() {
           </button>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 mb-6">
+        <div className="ferris-card rounded-xl p-6 mb-6">
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Фильтр по предмету</label>
             <select
@@ -58,7 +58,7 @@ export default function TeacherMaterialsPage() {
 
           <div className="space-y-3">
             {filteredMaterials.map((material) => (
-              <div key={material.id} className="glass-effect rounded-lg p-4 hover:shadow-lg transition-all group">
+              <div key={material.id} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all group">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1">
                     <div className={`w-12 h-12 bg-gradient-to-r ${getTypeColor(material.type)} rounded-lg flex items-center justify-center text-white font-bold`}>

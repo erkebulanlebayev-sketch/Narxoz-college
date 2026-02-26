@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔐</div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold btn-primary bg-clip-text text-transparent mb-2">
             {t.forgotPasswordTitle}
           </h1>
           <p className="text-gray-600">{t.forgotPasswordDesc}</p>

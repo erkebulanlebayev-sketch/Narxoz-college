@@ -12,7 +12,7 @@ export default function AdminSettingsPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="glass-effect rounded-xl p-6">
+          <div className="ferris-card rounded-xl p-6">
             <h2 className="text-xl font-bold mb-4">Общие настройки</h2>
             <div className="space-y-4">
               <div>
@@ -41,7 +41,7 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="glass-effect rounded-xl p-6">
+          <div className="ferris-card rounded-xl p-6">
             <h2 className="text-xl font-bold mb-4">Настройки оценок</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="glass-effect rounded-xl p-6">
+          <div className="ferris-card rounded-xl p-6">
             <h2 className="text-xl font-bold mb-4">Уведомления</h2>
             <div className="space-y-3">
               <label className="flex items-center gap-3">

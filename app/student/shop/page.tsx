@@ -179,7 +179,7 @@ export default function ShopPage() {
 
         {/* Корзина */}
         {cart.length > 0 && (
-          <div className="glass-card p-6 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <div className="ferris-card p-6 bg-gradient-to-r from-indigo-50 to-purple-50">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-bold gradient-text mb-1">🛒 Корзина</h3>
@@ -205,7 +205,7 @@ export default function ShopPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-white text-red-600 shadow-md'
-                  : 'glass-card hover:scale-105'
+                  : 'ferris-card hover:scale-105'
               }`}
             >
               {cat.icon} {cat.name}
@@ -216,7 +216,7 @@ export default function ShopPage() {
         {/* Товары */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map(product => (
-            <div key={product.id} className="glass-card p-6 hover:scale-[1.02] transition-transform">
+            <div key={product.id} className="ferris-card p-6 hover:scale-[1.02] transition-transform">
               <div className="text-center mb-4">
                 <div className="text-6xl mb-3">{product.image}</div>
                 <h3 className="text-xl font-bold gradient-text mb-2">{product.name}</h3>
@@ -265,7 +265,7 @@ export default function ShopPage() {
                 >
                   {cart.includes(product.id) ? '✓ В корзине' : '🛒 В корзину'}
                 </button>
-                <button className="px-4 py-2 glass-card hover:scale-105 transition-all">
+                <button className="px-4 py-2 ferris-card hover:scale-105 transition-all">
                   ❤️
                 </button>
               </div>

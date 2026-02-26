@@ -47,7 +47,7 @@ export default function AdminNewsPage() {
           {news.map((item) => (
             <div 
               key={item.id} 
-              className={`glass-effect rounded-xl p-6 hover:shadow-lg transition-all ${
+              className={`ferris-card rounded-xl p-6 hover:shadow-lg transition-all ${
                 item.important ? 'border-2 border-red-300' : ''
               }`}
             >

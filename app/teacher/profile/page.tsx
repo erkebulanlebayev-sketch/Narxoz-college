@@ -33,7 +33,7 @@ export default function TeacherProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="glass-effect rounded-xl p-6 text-center">
+          <div className="ferris-card rounded-xl p-6 text-center">
             <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-4xl mx-auto mb-4">
               {user?.user_metadata?.name?.charAt(0) || 'У'}
             </div>
@@ -45,7 +45,7 @@ export default function TeacherProfilePage() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <div className="glass-effect rounded-xl p-6">
+            <div className="ferris-card rounded-xl p-6">
               <h2 className="text-xl font-bold mb-4">Личная информация</h2>
               <div className="space-y-4">
                 <div>
@@ -75,7 +75,7 @@ export default function TeacherProfilePage() {
               </div>
             </div>
 
-            <div className="glass-effect rounded-xl p-6">
+            <div className="ferris-card rounded-xl p-6">
               <h2 className="text-xl font-bold mb-4">Преподаваемые предметы</h2>
               <div className="flex flex-wrap gap-2">
                 <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg">Математика</span>

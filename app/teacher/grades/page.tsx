@@ -33,7 +33,7 @@ export default function TeacherGradesPage() {
           <p className="text-gray-600">Выставление и редактирование оценок</p>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 mb-6">
+        <div className="ferris-card rounded-xl p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium mb-2">Группа</label>
@@ -75,7 +75,7 @@ export default function TeacherGradesPage() {
 
           <div className="space-y-3">
             {students.map((student) => (
-              <div key={student.id} className="glass-effect rounded-lg p-4 hover:shadow-lg transition-all">
+              <div key={student.id} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <p className="font-bold text-lg">{student.name}</p>

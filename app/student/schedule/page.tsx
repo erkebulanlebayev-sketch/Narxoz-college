@@ -64,7 +64,7 @@ export default function SchedulePage() {
         {scheduleData.map((day, dayIndex) => (
           <div
             key={day.day}
-            className="glass-effect rounded-2xl p-6 animate-fadeIn shadow-xl"
+            className="ferris-card rounded-2xl p-6 animate-fadeIn shadow-xl"
             style={{ animationDelay: `${dayIndex * 0.1}s` }}
           >
             <h2 className="text-2xl font-bold gradient-text mb-4">{day.day}</h2>
@@ -72,7 +72,7 @@ export default function SchedulePage() {
               {day.lessons.map((lesson, lessonIndex) => (
                 <div
                   key={lessonIndex}
-                  className="glass-effect rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
+                  className="ferris-card rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
                 >
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
                     <div className={`bg-gradient-to-r ${typeColors[lesson.type]} text-white px-4 py-2 rounded-lg text-center min-w-[120px] group-hover:scale-105 transition-transform`}>

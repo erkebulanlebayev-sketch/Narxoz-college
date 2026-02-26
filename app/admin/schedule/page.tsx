@@ -36,7 +36,7 @@ export default function AdminSchedulePage() {
           </button>
         </div>
 
-        <div className="glass-effect rounded-xl p-6">
+        <div className="ferris-card rounded-xl p-6">
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Фильтр по дню недели</label>
             <select
@@ -53,7 +53,7 @@ export default function AdminSchedulePage() {
 
           <div className="space-y-3">
             {filteredSchedule.map((lesson) => (
-              <div key={lesson.id} className="glass-effect rounded-lg p-4 hover:shadow-lg transition-all group">
+              <div key={lesson.id} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all group">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">

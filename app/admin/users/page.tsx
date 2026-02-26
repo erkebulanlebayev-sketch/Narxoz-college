@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
           <p className="text-gray-600">Всего пользователей: {users.length}</p>
         </div>
 
-        <div className="glass-effect rounded-xl p-6">
+        <div className="ferris-card rounded-xl p-6">
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Фильтр по роли</label>
             <select
@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
 
           <div className="space-y-3">
             {filteredUsers.map((user) => (
-              <div key={user.id} className="glass-effect rounded-lg p-4 hover:shadow-lg transition-all">
+              <div key={user.id} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-4 flex-1">
                     <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">

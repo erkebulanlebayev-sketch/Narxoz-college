@@ -264,7 +264,7 @@ export default function ExchangePage() {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'all'
                 ? 'bg-gradient-to-r from-red-600 to-purple-600 text-white shadow-lg'
-                : 'glass-card hover:scale-105'
+                : 'ferris-card hover:scale-105'
             }`}
           >
             📚 Все материалы
@@ -274,7 +274,7 @@ export default function ExchangePage() {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'my'
                 ? 'bg-gradient-to-r from-red-600 to-purple-600 text-white shadow-lg'
-                : 'glass-card hover:scale-105'
+                : 'ferris-card hover:scale-105'
             }`}
           >
             📤 Мои загрузки
@@ -292,7 +292,7 @@ export default function ExchangePage() {
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     selectedCategory === cat.id
                       ? 'bg-white text-red-600 shadow-md'
-                      : 'glass-card hover:scale-105'
+                      : 'ferris-card hover:scale-105'
                   }`}
                 >
                   {cat.icon} {cat.name}
@@ -307,7 +307,7 @@ export default function ExchangePage() {
                 <p className="text-gray-600">Загрузка материалов...</p>
               </div>
             ) : filteredMaterials.length === 0 ? (
-              <div className="glass-card p-12 text-center">
+              <div className="ferris-card p-12 text-center">
                 <div className="text-6xl mb-4">📭</div>
                 <h3 className="text-2xl font-bold mb-2">Материалов пока нет</h3>
                 <p className="text-gray-600">Будьте первым, кто загрузит материал!</p>
@@ -315,7 +315,7 @@ export default function ExchangePage() {
             ) : (
               <div className="grid gap-6">
                 {filteredMaterials.map(material => (
-                  <div key={material.id} className="glass-card p-6 hover:scale-[1.02] transition-transform">
+                  <div key={material.id} className="ferris-card p-6 hover:scale-[1.02] transition-transform">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold gradient-text mb-2">{material.title}</h3>
@@ -362,7 +362,7 @@ export default function ExchangePage() {
         {activeTab === 'my' && (
           <div className="space-y-6">
             {/* Кнопка загрузки */}
-            <div className="glass-card p-8 text-center">
+            <div className="ferris-card p-8 text-center">
               <div className="text-6xl mb-4">📤</div>
               <h3 className="text-2xl font-bold mb-2">Загрузите свои материалы</h3>
               <p className="text-gray-600 mb-4">Помогите другим студентам и заработайте репутацию</p>
@@ -376,7 +376,7 @@ export default function ExchangePage() {
 
             {/* Мои материалы */}
             {myMaterials.length === 0 ? (
-              <div className="glass-card p-12 text-center">
+              <div className="ferris-card p-12 text-center">
                 <div className="text-6xl mb-4">📂</div>
                 <h3 className="text-2xl font-bold mb-2">У вас пока нет загруженных материалов</h3>
                 <p className="text-gray-600">Загрузите свой первый материал!</p>
@@ -384,7 +384,7 @@ export default function ExchangePage() {
             ) : (
               <div className="grid gap-6">
                 {myMaterials.map(material => (
-                  <div key={material.id} className="glass-card p-6">
+                  <div key={material.id} className="ferris-card p-6">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold gradient-text mb-2">{material.title}</h3>
@@ -415,13 +415,13 @@ export default function ExchangePage() {
                     <div className="flex gap-3 mt-4">
                       <button 
                         onClick={() => handleDownload(material)}
-                        className="px-4 py-2 glass-card hover:scale-105 transition-all"
+                        className="px-4 py-2 ferris-card hover:scale-105 transition-all"
                       >
                         📥 Скачать
                       </button>
                       <button 
                         onClick={() => handleDelete(material.id, material.file_path)}
-                        className="px-4 py-2 glass-card hover:scale-105 transition-all text-red-600"
+                        className="px-4 py-2 ferris-card hover:scale-105 transition-all text-red-600"
                       >
                         🗑️ Удалить
                       </button>

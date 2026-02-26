@@ -33,12 +33,12 @@ export default function TeacherSchedulePage() {
 
         <div className="space-y-4">
           {schedule.map((day, index) => (
-            <div key={index} className="glass-effect rounded-xl p-6 animate-fadeIn" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div key={index} className="ferris-card rounded-xl p-6 animate-fadeIn" style={{ animationDelay: `${index * 0.1}s` }}>
               <h2 className="text-xl font-bold mb-4 gradient-text">{day.day}</h2>
               {day.lessons.length > 0 ? (
                 <div className="space-y-3">
                   {day.lessons.map((lesson, lessonIndex) => (
-                    <div key={lessonIndex} className="glass-effect rounded-lg p-4 hover:shadow-lg transition-all group">
+                    <div key={lessonIndex} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all group">
                       <div className="flex flex-col md:flex-row md:items-center gap-4">
                         <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-3 rounded-lg text-center min-w-[120px]">
                           <p className="text-sm font-bold">{lesson.time}</p>

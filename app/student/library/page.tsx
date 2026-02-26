@@ -42,7 +42,7 @@ export default function StudentLibraryPage() {
           placeholder="Поиск книг..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-6 py-4 glass-effect rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+          className="flex-1 px-6 py-4 ferris-card rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
         />
         <div className="flex gap-2 overflow-x-auto">
           {categories.map(cat => (
@@ -51,8 +51,8 @@ export default function StudentLibraryPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? 'bg-gradient-to-r from-gray-800 to-black text-white shadow-lg'
-                  : 'glass-effect text-gray-700 hover:shadow-md'
+                  ? 'btn-secondary text-white shadow-lg'
+                  : 'ferris-card text-gray-700 hover:shadow-md'
               }`}
             >
               {cat}
@@ -65,7 +65,7 @@ export default function StudentLibraryPage() {
         {filteredBooks.map((book, index) => (
           <div
             key={book.id}
-            className="glass-effect rounded-2xl p-6 card-hover animate-fadeIn group"
+            className="ferris-card rounded-2xl p-6 card-hover animate-fadeIn group"
             style={{ animationDelay: `${index * 0.05}s` }}
           >
             <div className="flex items-start gap-4 mb-4">

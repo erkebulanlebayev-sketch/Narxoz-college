@@ -56,7 +56,7 @@ export default function StudentNewsPage() {
         {newsData.map((news, index) => (
           <div
             key={news.id}
-            className="glass-effect rounded-2xl overflow-hidden card-hover animate-fadeIn group"
+            className="ferris-card rounded-2xl overflow-hidden card-hover animate-fadeIn group"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className={`h-3 bg-gradient-to-r ${news.color}`}></div>

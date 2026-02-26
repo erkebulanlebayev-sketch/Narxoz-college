@@ -30,7 +30,7 @@ export default function TeacherStudentsPage() {
           <p className="text-gray-600">Управление списком студентов</p>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 mb-6">
+        <div className="ferris-card rounded-xl p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <input
               type="text"
@@ -53,7 +53,7 @@ export default function TeacherStudentsPage() {
 
           <div className="space-y-3">
             {filteredStudents.map((student) => (
-              <div key={student.id} className="glass-effect rounded-lg p-4 hover:shadow-lg transition-all group">
+              <div key={student.id} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all group">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
