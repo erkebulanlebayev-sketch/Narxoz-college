@@ -2,13 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ferris-inspired Design System */
+/* Ferris-inspired Design with Red-Gray-Black-White Palette */
 :root {
-  --ferris-crimson: #8B1A1A;
-  --ferris-gold: #F4C430;
-  --ferris-dark: #2D2D2D;
-  --ferris-gray: #6B7280;
-  --ferris-light-gray: #F3F4F6;
+  --primary-red: #DC2626;
+  --dark-red: #991B1B;
+  --primary-gray: #6B7280;
+  --dark-gray: #374151;
+  --light-gray: #F3F4F6;
+  --black: #111827;
+  --white: #FFFFFF;
 }
 
 * {
@@ -52,7 +54,7 @@ body {
   animation: slideIn 0.5s ease-out;
 }
 
-/* Ferris-style Cards */
+/* Cards */
 .ferris-card {
   @apply bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300;
   border: 1px solid #E5E7EB;
@@ -63,151 +65,182 @@ body {
 }
 
 /* Buttons */
-.btn-ferris-primary {
+.btn-primary {
   @apply px-6 py-3 rounded-md font-semibold text-white transition-all duration-300;
-  background-color: var(--ferris-crimson);
+  background-color: var(--primary-red);
 }
 
-.btn-ferris-primary:hover {
-  background-color: #6B1414;
+.btn-primary:hover {
+  background-color: var(--dark-red);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 26, 26, 0.3);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
-.btn-ferris-secondary {
-  @apply px-6 py-3 rounded-md font-semibold transition-all duration-300;
-  background-color: var(--ferris-gold);
-  color: var(--ferris-dark);
+.btn-secondary {
+  @apply px-6 py-3 rounded-md font-semibold text-white transition-all duration-300;
+  background-color: var(--black);
 }
 
-.btn-ferris-secondary:hover {
-  background-color: #E0B020;
+.btn-secondary:hover {
+  background-color: var(--dark-gray);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.3);
 }
 
-.btn-ferris-outline {
+.btn-outline {
   @apply px-6 py-3 rounded-md font-semibold border-2 transition-all duration-300;
-  border-color: var(--ferris-crimson);
-  color: var(--ferris-crimson);
+  border-color: var(--primary-red);
+  color: var(--primary-red);
   background-color: transparent;
 }
 
-.btn-ferris-outline:hover {
-  background-color: var(--ferris-crimson);
+.btn-outline:hover {
+  background-color: var(--primary-red);
   color: white;
 }
 
 /* Hero Section */
-.ferris-hero {
+.hero-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, var(--ferris-crimson) 0%, #6B1414 100%);
+  background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
   min-height: 400px;
 }
 
 /* Section Headers */
-.ferris-section-title {
+.section-title {
   @apply text-3xl md:text-4xl font-bold mb-4;
-  color: var(--ferris-crimson);
+  color: var(--primary-red);
 }
 
-.ferris-section-subtitle {
+.section-subtitle {
   @apply text-lg text-gray-600 mb-8;
 }
 
 /* Navigation */
-.ferris-nav {
+.main-nav {
   @apply bg-white shadow-md;
-  border-bottom: 3px solid var(--ferris-crimson);
+  border-bottom: 3px solid var(--primary-red);
 }
 
-.ferris-nav-link {
+.nav-link {
   @apply px-4 py-2 text-gray-700 font-medium hover:text-white transition-all duration-300 rounded-md;
 }
 
-.ferris-nav-link:hover {
-  background-color: var(--ferris-crimson);
+.nav-link:hover {
+  background-color: var(--primary-red);
 }
 
-.ferris-nav-link.active {
-  background-color: var(--ferris-crimson);
+.nav-link.active {
+  background-color: var(--primary-red);
   color: white;
 }
 
 /* Stats/Info Boxes */
-.ferris-stat-box {
+.stat-box {
   @apply bg-white p-6 rounded-lg shadow-md text-center;
-  border-top: 4px solid var(--ferris-gold);
+  border-top: 4px solid var(--primary-red);
 }
 
-.ferris-stat-number {
+.stat-number {
   @apply text-4xl font-bold mb-2;
-  color: var(--ferris-crimson);
+  color: var(--primary-red);
 }
 
-.ferris-stat-label {
+.stat-label {
   @apply text-gray-600 text-sm uppercase tracking-wide;
 }
 
 /* Content Sections */
-.ferris-section {
+.content-section {
   @apply py-12 md:py-16;
 }
 
-.ferris-section-alt {
+.content-section-alt {
   @apply py-12 md:py-16;
-  background-color: var(--ferris-light-gray);
+  background-color: var(--light-gray);
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   @apply font-bold;
-  color: var(--ferris-dark);
+  color: var(--black);
 }
 
-.ferris-text-crimson {
-  color: var(--ferris-crimson);
+.text-primary {
+  color: var(--primary-red);
 }
 
-.ferris-text-gold {
-  color: var(--ferris-gold);
+.text-secondary {
+  color: var(--primary-gray);
 }
 
-.ferris-bg-crimson {
-  background-color: var(--ferris-crimson);
+.bg-primary {
+  background-color: var(--primary-red);
 }
 
-.ferris-bg-gold {
-  background-color: var(--ferris-gold);
+.bg-secondary {
+  background-color: var(--black);
+}
+
+.bg-light {
+  background-color: var(--light-gray);
 }
 
 /* Badges */
-.ferris-badge {
+.badge {
   @apply inline-block px-3 py-1 rounded-full text-sm font-semibold;
-  background-color: var(--ferris-gold);
-  color: var(--ferris-dark);
+  background-color: var(--primary-red);
+  color: white;
+}
+
+.badge-secondary {
+  @apply inline-block px-3 py-1 rounded-full text-sm font-semibold;
+  background-color: var(--primary-gray);
+  color: white;
 }
 
 /* Dividers */
-.ferris-divider {
+.divider {
   @apply my-8;
   height: 3px;
-  background: linear-gradient(90deg, var(--ferris-crimson) 0%, var(--ferris-gold) 100%);
+  background: linear-gradient(90deg, var(--primary-red) 0%, var(--black) 100%);
 }
 
 /* Glass Effect (subtle) */
-.ferris-glass {
+.glass-effect {
   @apply bg-white bg-opacity-95 backdrop-blur-sm;
-  border: 1px solid rgba(139, 26, 26, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+}
+
+/* Tables */
+.table-container {
+  @apply bg-white rounded-lg shadow-md overflow-hidden;
+}
+
+.table-header {
+  @apply bg-gray-50 border-b-2;
+  border-color: var(--primary-red);
+}
+
+/* Forms */
+.form-input {
+  @apply w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 transition-all;
+  focus-ring-color: var(--primary-red);
+}
+
+.form-input:focus {
+  border-color: var(--primary-red);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .ferris-section-title {
+  .section-title {
     @apply text-2xl;
   }
   
-  .ferris-stat-number {
+  .stat-number {
     @apply text-3xl;
   }
 }
@@ -225,12 +258,35 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Focus States */
 *:focus-visible {
-  outline: 2px solid var(--ferris-gold);
+  outline: 2px solid var(--primary-red);
   outline-offset: 2px;
 }
 
 /* Selection */
 ::selection {
-  background-color: var(--ferris-crimson);
+  background-color: var(--primary-red);
   color: white;
+}
+
+/* Gradient Text */
+.gradient-text {
+  @apply bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent;
+}
+
+/* Hover Effects */
+.hover-lift {
+  @apply transition-transform duration-300;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Shadows */
+.shadow-red {
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+}
+
+.shadow-black {
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.25);
 }
