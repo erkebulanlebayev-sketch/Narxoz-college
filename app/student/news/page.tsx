@@ -47,34 +47,34 @@ export default function StudentNewsPage() {
       <div className="mb-8 animate-fadeIn text-center">
         <h1 className="text-5xl font-bold mb-3">
           <span className="gradient-text">Новости колледжа</span>
-          <span className="inline-block animate-float ml-2">📰</span>
+          <span className="inline-block ml-2 text-5xl">📰</span>
         </h1>
-        <p className="text-gray-600 text-xl">Будьте в курсе всех событий и объявлений</p>
+        <p className="text-gray-600 text-xl font-medium">Будьте в курсе всех событий и объявлений</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {newsData.map((news, index) => (
           <div
             key={news.id}
-            className="ferris-card rounded-2xl overflow-hidden card-hover animate-fadeIn group"
+            className="ferris-card overflow-hidden card-hover animate-fadeIn"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <div className={`h-3 bg-gradient-to-r ${news.color}`}></div>
+            <div className={`h-4 bg-gradient-to-r ${news.color}`}></div>
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-5xl group-hover:scale-110 transition-transform">{news.image}</div>
+                  <div className="text-5xl">{news.image}</div>
                   <div>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${news.color}`}>
+                    <span className={`inline-block px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r ${news.color} shadow-lg`}>
                       {news.category}
                     </span>
-                    <p className="text-sm text-gray-500 mt-2">{news.date}</p>
+                    <p className="text-sm text-gray-500 mt-2 font-medium">{news.date}</p>
                   </div>
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-3">{news.title}</h2>
               <p className="text-gray-600 leading-relaxed mb-4">{news.content}</p>
-              <button className={`px-4 py-2 rounded-lg font-semibold text-white bg-gradient-to-r ${news.color} hover:shadow-lg transition-all hover:scale-105`}>
+              <button className={`px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r ${news.color} hover:shadow-2xl transition-all hover:scale-105`}>
                 Читать далее →
               </button>
             </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { requestPasswordReset } from '@/lib/auth';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
 import { translations, Language } from '@/lib/translations';
@@ -41,9 +41,7 @@ export default function ForgotPasswordPage() {
     setMessage('');
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { error } = await requestPasswordReset(email);
 
       if (error) throw error;
 

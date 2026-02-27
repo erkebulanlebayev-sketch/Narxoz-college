@@ -55,7 +55,9 @@ export default function UniversalLayout({ children, role }: UniversalLayoutProps
         { label: t.schedule, href: '/admin/schedule' },
         { label: t.students, href: '/admin/students' },
         { label: t.teachers, href: '/admin/teachers' },
+        { label: t.shop, href: '/admin/shop' },
         { label: t.users, href: '/admin/users' },
+        { label: t.audit, href: '/admin/audit' },
         { label: t.settings, href: '/admin/settings' }
       ];
     }

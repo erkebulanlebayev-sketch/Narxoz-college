@@ -1,11 +1,69 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StudentLayout from '@/components/StudentLayout';
+import { supabase } from '@/lib/supabase';
+
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
+  description: string;
+  in_stock: boolean;
+  rating: number;
+  reviews: number;
+}
 
 export default function ShopPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [cart, setCart] = useState<number[]>([]);
+
+  // Загрузка товаров из базы данных
+  useEffect(() => {
+    loadProducts();
+
+    // Автоматическое обновление каждые 5 секунд
+    const interval = setInterval(() => {
+      loadProducts();
+    }, 5000);
+
+    // Real-time подписка на изменения (если работает)
+    const subscription = supabase
+      .channel('shop_changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'shop_products' },
+        () => {
+          console.log('✅ Товары обновлены через Realtime!');
+          loadProducts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  async function loadProducts() {
+    try {
+      const { data, error } = await supabase
+        .from('shop_products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Ошибка загрузки:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const categories = [
     { id: 'all', name: 'Все товары', icon: '🛍️' },
@@ -13,141 +71,6 @@ export default function ShopPage() {
     { id: 'stationery', name: 'Канцелярия', icon: '✏️' },
     { id: 'books', name: 'Книги', icon: '📚' },
     { id: 'tech', name: 'Техника', icon: '💻' }
-  ];
-
-  const products = [
-    {
-      id: 1,
-      name: 'Толстовка Narxoz',
-      category: 'merch',
-      price: 15000,
-      image: '👕',
-      description: 'Стильная толстовка с логотипом колледжа',
-      inStock: true,
-      rating: 4.8,
-      reviews: 24
-    },
-    {
-      id: 2,
-      name: 'Футболка Narxoz',
-      category: 'merch',
-      price: 8000,
-      image: '👔',
-      description: 'Хлопковая футболка с принтом',
-      inStock: true,
-      rating: 4.6,
-      reviews: 18
-    },
-    {
-      id: 3,
-      name: 'Кепка Narxoz',
-      category: 'merch',
-      price: 5000,
-      image: '🧢',
-      description: 'Бейсболка с вышитым логотипом',
-      inStock: true,
-      rating: 4.7,
-      reviews: 15
-    },
-    {
-      id: 4,
-      name: 'Рюкзак студента',
-      category: 'merch',
-      price: 12000,
-      image: '🎒',
-      description: 'Вместительный рюкзак для учебы',
-      inStock: true,
-      rating: 4.9,
-      reviews: 32
-    },
-    {
-      id: 5,
-      name: 'Набор ручек',
-      category: 'stationery',
-      price: 2000,
-      image: '🖊️',
-      description: 'Набор из 10 шариковых ручек',
-      inStock: true,
-      rating: 4.5,
-      reviews: 45
-    },
-    {
-      id: 6,
-      name: 'Блокнот А5',
-      category: 'stationery',
-      price: 1500,
-      image: '📓',
-      description: 'Блокнот в клетку, 96 листов',
-      inStock: true,
-      rating: 4.6,
-      reviews: 28
-    },
-    {
-      id: 7,
-      name: 'Маркеры цветные',
-      category: 'stationery',
-      price: 3000,
-      image: '🖍️',
-      description: 'Набор из 12 цветных маркеров',
-      inStock: true,
-      rating: 4.7,
-      reviews: 19
-    },
-    {
-      id: 8,
-      name: 'Учебник по Математике',
-      category: 'books',
-      price: 6000,
-      image: '📐',
-      description: 'Математический анализ, 2-е издание',
-      inStock: true,
-      rating: 4.8,
-      reviews: 56
-    },
-    {
-      id: 9,
-      name: 'Программирование на Python',
-      category: 'books',
-      price: 7500,
-      image: '🐍',
-      description: 'Полное руководство для начинающих',
-      inStock: false,
-      rating: 5.0,
-      reviews: 89
-    },
-    {
-      id: 10,
-      name: 'Флешка 32GB',
-      category: 'tech',
-      price: 4000,
-      image: '💾',
-      description: 'USB 3.0 флеш-накопитель',
-      inStock: true,
-      rating: 4.6,
-      reviews: 67
-    },
-    {
-      id: 11,
-      name: 'Наушники',
-      category: 'tech',
-      price: 9000,
-      image: '🎧',
-      description: 'Беспроводные наушники с микрофоном',
-      inStock: true,
-      rating: 4.7,
-      reviews: 43
-    },
-    {
-      id: 12,
-      name: 'Мышка беспроводная',
-      category: 'tech',
-      price: 5500,
-      image: '🖱️',
-      description: 'Эргономичная беспроводная мышь',
-      inStock: true,
-      rating: 4.5,
-      reviews: 31
-    }
   ];
 
   const filteredProducts = products.filter(p => 
@@ -167,29 +90,55 @@ export default function ShopPage() {
     return sum + (product?.price || 0);
   }, 0);
 
+  const handleCheckout = () => {
+    const cartItems = cart.map(id => {
+      const product = products.find(p => p.id === id);
+      return `• ${product?.name} - ${product?.price.toLocaleString()} ₸`;
+    }).join('\n');
+
+    const message = `🛍️ *Новый заказ из Narxoz Shop*\n\n${cartItems}\n\n💰 *Итого: ${totalPrice.toLocaleString()} ₸*\n\nПожалуйста, подтвердите заказ.`;
+    const phoneNumber = '77771234567';
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+  };
+
+  if (loading) {
+    return (
+      <StudentLayout>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 animate-pulse">⏳</div>
+          <p className="text-xl gradient-text font-bold">Загрузка товаров...</p>
+        </div>
+      </StudentLayout>
+    );
+  }
+
   return (
     <StudentLayout>
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 via-purple-600 to-black bg-clip-text text-transparent mb-2">
-            🛍️ Narxoz Shop
+          <h1 className="text-4xl font-bold mb-2">
+            <span className="gradient-text">🛍️ Narxoz Shop</span>
           </h1>
-          <p className="text-gray-600">Официальный магазин колледжа</p>
+          <p className="text-gray-600 font-medium">Официальный магазин колледжа</p>
         </div>
 
         {/* Корзина */}
         {cart.length > 0 && (
-          <div className="ferris-card p-6 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <div className="ferris-card p-6 shadow-colorful animated-bg">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-bold gradient-text mb-1">🛒 Корзина</h3>
-                <p className="text-gray-600">{cart.length} товаров</p>
+                <h3 className="text-xl font-bold text-white mb-1">🛒 Корзина</h3>
+                <p className="text-white/90">{cart.length} товаров</p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-500">Итого:</div>
-                <div className="text-3xl font-bold gradient-text">{totalPrice.toLocaleString()} ₸</div>
+                <div className="text-sm text-white/80">Итого:</div>
+                <div className="text-3xl font-bold text-white">{totalPrice.toLocaleString()} ₸</div>
               </div>
-              <button className="bg-gradient-to-r from-red-600 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold hover:shadow-lg transition-all">
+              <button 
+                className="btn-primary"
+                onClick={handleCheckout}
+              >
                 Оформить заказ
               </button>
             </div>
@@ -202,9 +151,9 @@ export default function ShopPage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg ${
                 selectedCategory === cat.id
-                  ? 'bg-white text-red-600 shadow-md'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-pink scale-110'
                   : 'ferris-card hover:scale-105'
               }`}
             >
@@ -215,14 +164,13 @@ export default function ShopPage() {
 
         {/* Товары */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map(product => (
-            <div key={product.id} className="ferris-card p-6 hover:scale-[1.02] transition-transform">
+          {filteredProducts.map((product, index) => (
+            <div key={product.id} className="ferris-card p-6 card-hover glow" style={{ animationDelay: `${index * 0.05}s` }}>
               <div className="text-center mb-4">
                 <div className="text-6xl mb-3">{product.image}</div>
                 <h3 className="text-xl font-bold gradient-text mb-2">{product.name}</h3>
                 <p className="text-gray-600 text-sm mb-3">{product.description}</p>
                 
-                {/* Рейтинг */}
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <div className="flex items-center gap-1 text-yellow-500">
                     <span>⭐</span>
@@ -231,47 +179,51 @@ export default function ShopPage() {
                   <span className="text-gray-400 text-sm">({product.reviews} отзывов)</span>
                 </div>
 
-                {/* Цена */}
-                <div className="text-3xl font-bold gradient-text mb-4">
+                <div className="text-3xl font-black gradient-text mb-4">
                   {product.price.toLocaleString()} ₸
                 </div>
 
-                {/* Наличие */}
-                {product.inStock ? (
-                  <div className="flex items-center justify-center gap-2 text-green-600 text-sm mb-4">
+                {product.in_stock ? (
+                  <div className="flex items-center justify-center gap-2 text-green-600 text-sm mb-4 font-bold">
                     <span>✅</span>
                     <span>В наличии</span>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 text-red-600 text-sm mb-4">
+                  <div className="flex items-center justify-center gap-2 text-red-600 text-sm mb-4 font-bold">
                     <span>❌</span>
                     <span>Нет в наличии</span>
                   </div>
                 )}
               </div>
 
-              {/* Кнопки */}
               <div className="flex gap-3">
                 <button
                   onClick={() => toggleCart(product.id)}
-                  disabled={!product.inStock}
-                  className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
+                  disabled={!product.in_stock}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
                     cart.includes(product.id)
-                      ? 'bg-green-600 text-white'
-                      : product.inStock
-                      ? 'bg-gradient-to-r from-red-600 to-purple-600 text-white hover:shadow-lg'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
+                      : product.in_stock
+                      ? 'btn-primary'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
                   {cart.includes(product.id) ? '✓ В корзине' : '🛒 В корзину'}
                 </button>
-                <button className="px-4 py-2 ferris-card hover:scale-105 transition-all">
+                <button className="px-4 py-3 ferris-card hover:scale-110 transition-all text-2xl">
                   ❤️
                 </button>
               </div>
             </div>
           ))}
         </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📦</div>
+            <p className="text-gray-600 text-lg">Товары не найдены</p>
+          </div>
+        )}
       </div>
     </StudentLayout>
   );

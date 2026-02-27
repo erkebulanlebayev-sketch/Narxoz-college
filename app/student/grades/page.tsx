@@ -76,7 +76,7 @@ export default function GradesPage() {
     <StudentLayout>
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 via-purple-600 to-black bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold text-black mb-2">
             📊 Мои оценки
           </h1>
           <p className="text-gray-600">Успеваемость по всем предметам</p>
@@ -110,10 +110,10 @@ export default function GradesPage() {
           {subjects.map((subject, idx) => {
             const avg = calculateAverage(subject.grades);
             return (
-              <div key={idx} className="ferris-card p-6 hover:scale-[1.02] transition-transform">
+              <div key={idx} className="ferris-card p-6 hover-lift">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold gradient-text">{subject.name}</h3>
+                    <h3 className="text-xl font-bold text-black">{subject.name}</h3>
                     <p className="text-gray-600 text-sm">Преподаватель: {subject.teacher}</p>
                   </div>
                   <div className="text-right">
@@ -126,7 +126,7 @@ export default function GradesPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Лекции */}
-                  <div className="bg-white/50 rounded-lg p-3">
+                  <div className="bg-light rounded-lg p-3">
                     <div className="text-xs text-gray-500 mb-2">📚 Лекции</div>
                     <div className="flex flex-wrap gap-2">
                       {subject.grades.lecture.map((grade, i) => (
@@ -138,7 +138,7 @@ export default function GradesPage() {
                   </div>
 
                   {/* СРСП */}
-                  <div className="bg-white/50 rounded-lg p-3">
+                  <div className="bg-light rounded-lg p-3">
                     <div className="text-xs text-gray-500 mb-2">✍️ СРСП</div>
                     <div className="flex flex-wrap gap-2">
                       {subject.grades.srsp.map((grade, i) => (
@@ -150,7 +150,7 @@ export default function GradesPage() {
                   </div>
 
                   {/* СРС */}
-                  <div className="bg-white/50 rounded-lg p-3">
+                  <div className="bg-light rounded-lg p-3">
                     <div className="text-xs text-gray-500 mb-2">📝 СРС</div>
                     <div className="flex flex-wrap gap-2">
                       {subject.grades.srs.map((grade, i) => (
@@ -162,7 +162,7 @@ export default function GradesPage() {
                   </div>
 
                   {/* Экзамены */}
-                  <div className="bg-white/50 rounded-lg p-3">
+                  <div className="bg-light rounded-lg p-3">
                     <div className="text-xs text-gray-500 mb-2">🎓 Экзамены</div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
@@ -185,7 +185,7 @@ export default function GradesPage() {
                 <div className="mt-4">
                   <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all"
+                      className="h-full bg-primary transition-all"
                       style={{ width: `${parseFloat(avg)}%` }}
                     ></div>
                   </div>

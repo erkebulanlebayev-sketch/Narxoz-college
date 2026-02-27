@@ -14,6 +14,7 @@ export const translations = {
     teachers: 'Мұғалімдер',
     users: 'Пайдаланушылар',
     settings: 'Баптаулар',
+    audit: 'Аудит журналы',
     logout: 'Шығу',
     loading: 'Жүктелуде...',
     
@@ -156,6 +157,7 @@ export const translations = {
     teachers: 'Учителя',
     users: 'Пользователи',
     settings: 'Настройки',
+    audit: 'Журнал аудита',
     logout: 'Выйти',
     loading: 'Загрузка...',
     

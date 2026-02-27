@@ -29,9 +29,9 @@ export default function StudentLibraryPage() {
   return (
     <StudentLayout>
       <div className="mb-8 animate-fadeIn text-center">
-        <h1 className="text-5xl font-bold mb-3">
-          <span className="gradient-text">Электронная библиотека</span>
-          <span className="inline-block animate-float ml-2">📚</span>
+        <h1 className="text-5xl font-bold mb-3 text-black">
+          Электронная библиотека
+          <span className="inline-block ml-2">📚</span>
         </h1>
         <p className="text-gray-600 text-xl">Доступ к учебным материалам и книгам</p>
       </div>
@@ -42,7 +42,7 @@ export default function StudentLibraryPage() {
           placeholder="Поиск книг..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-6 py-4 ferris-card rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+          className="flex-1 px-6 py-4 ferris-card rounded-xl focus:ring-2 focus:ring-red-600 focus:border-transparent text-lg"
         />
         <div className="flex gap-2 overflow-x-auto">
           {categories.map(cat => (
@@ -51,7 +51,7 @@ export default function StudentLibraryPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? 'btn-secondary text-white shadow-lg'
+                  ? 'btn-primary shadow-lg'
                   : 'ferris-card text-gray-700 hover:shadow-md'
               }`}
             >
@@ -65,16 +65,16 @@ export default function StudentLibraryPage() {
         {filteredBooks.map((book, index) => (
           <div
             key={book.id}
-            className="ferris-card rounded-2xl p-6 card-hover animate-fadeIn group"
+            className="ferris-card p-6 hover-lift animate-fadeIn"
             style={{ animationDelay: `${index * 0.05}s` }}
           >
             <div className="flex items-start gap-4 mb-4">
-              <div className="text-6xl group-hover:scale-110 transition-transform">{book.icon}</div>
+              <div className="text-6xl">{book.icon}</div>
               <div className="flex-1">
                 <h3 className="font-bold text-xl text-gray-800 mb-2">{book.title}</h3>
                 <p className="text-sm text-gray-600 mb-2">Автор: {book.author}</p>
                 <div className="flex items-center gap-2">
-                  <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full">
+                  <span className="badge">
                     {book.category}
                   </span>
                   <span className="text-xs text-gray-500">{book.pages} стр.</span>
@@ -88,7 +88,7 @@ export default function StudentLibraryPage() {
               <StarBorder
                 as="button"
                 disabled={!book.available}
-                color={book.available ? '#a855f7' : '#9ca3af'}
+                color={book.available ? '#DC2626' : '#9ca3af'}
                 speed="5s"
                 style={{ 
                   opacity: book.available ? 1 : 0.5,

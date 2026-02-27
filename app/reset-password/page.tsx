@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { updatePassword } from '@/lib/auth';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
 import { translations, Language } from '@/lib/translations';
@@ -78,9 +79,7 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
+      const { error } = await updatePassword(password);
 
       if (error) throw error;
 

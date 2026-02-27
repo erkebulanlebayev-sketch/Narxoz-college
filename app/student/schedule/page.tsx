@@ -53,9 +53,9 @@ export default function SchedulePage() {
   return (
     <StudentLayout>
       <div className="mb-8 animate-fadeIn text-center">
-        <h1 className="text-5xl font-bold mb-3">
-          <span className="gradient-text">Расписание занятий</span>
-          <span className="inline-block animate-float ml-2">📅</span>
+        <h1 className="text-5xl font-bold mb-3 text-black">
+          Расписание занятий
+          <span className="inline-block ml-2">📅</span>
         </h1>
         <p className="text-gray-600 text-xl">Ваше расписание на неделю</p>
       </div>
@@ -64,24 +64,24 @@ export default function SchedulePage() {
         {scheduleData.map((day, dayIndex) => (
           <div
             key={day.day}
-            className="ferris-card rounded-2xl p-6 animate-fadeIn shadow-xl"
+            className="ferris-card p-6 animate-fadeIn"
             style={{ animationDelay: `${dayIndex * 0.1}s` }}
           >
-            <h2 className="text-2xl font-bold gradient-text mb-4">{day.day}</h2>
+            <h2 className="text-2xl font-bold text-primary mb-4">{day.day}</h2>
             <div className="space-y-3">
               {day.lessons.map((lesson, lessonIndex) => (
                 <div
                   key={lessonIndex}
-                  className="ferris-card rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
+                  className="ferris-card p-4 hover-lift"
                 >
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className={`bg-gradient-to-r ${typeColors[lesson.type]} text-white px-4 py-2 rounded-lg text-center min-w-[120px] group-hover:scale-105 transition-transform`}>
-                      <p className="text-sm font-bold">{lesson.time}</p>
+                    <div className="bg-primary text-white px-4 py-2 rounded-lg text-center min-w-[120px] font-bold">
+                      <p className="text-sm">{lesson.time}</p>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-bold text-lg text-gray-800">{lesson.subject}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${typeColors[lesson.type]} text-white`}>
+                        <span className="badge-secondary">
                           {lesson.type}
                         </span>
                       </div>
