@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/auth';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+import Footer from '@/components/Footer';
 import { translations, Language } from '@/lib/translations';
 
 const Galaxy = dynamic(() => import('@/components/Galaxy'), {
@@ -18,10 +19,13 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'teacher'>('student');
+  const [group, setGroup] = useState(''); // Добавлено поле группы
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<Language>('ru');
   const [mounted, setMounted] = useState(false);
+
+  const groups = ['ИС-21-1', 'ИС-21-2', 'ИС-22-1', 'ИС-22-2', 'ИС-23-1', 'ИС-23-2']; // Список групп
 
   useEffect(() => {
     setMounted(true);
@@ -43,7 +47,14 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    const { data, error } = await signUp(email, password, name, role);
+    // Проверка группы для студентов
+    if (role === 'student' && !group) {
+      setError('Пожалуйста, выберите группу');
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await signUp(email, password, name, role, group);
     
     if (error) {
       setError('Ошибка регистрации: ' + error.message);
@@ -59,24 +70,25 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Galaxy Background */}
-      <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-        <Galaxy
-          mouseRepulsion
-          mouseInteraction
-          density={1.2}
-          glowIntensity={0.4}
-          saturation={0.3}
-          hueShift={280}
-          twinkleIntensity={0.4}
-          rotationSpeed={0.05}
-          repulsionStrength={2}
-          autoCenterRepulsion={0}
-          starSpeed={0.5}
-          speed={1}
-        />
-      </div>
+    <>
+      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+        {/* Galaxy Background */}
+        <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+          <Galaxy
+            mouseRepulsion
+            mouseInteraction
+            density={1.2}
+            glowIntensity={0.4}
+            saturation={0.3}
+            hueShift={280}
+            twinkleIntensity={0.4}
+            rotationSpeed={0.05}
+            repulsionStrength={2}
+            autoCenterRepulsion={0}
+            starSpeed={0.5}
+            speed={1}
+          />
+        </div>
 
       {/* Language Switcher */}
       <div className="absolute top-4 right-4 z-20 flex gap-2">
@@ -178,6 +190,28 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* Выбор группы для студентов */}
+          {role === 'student' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {language === 'kz' ? 'Топ' : language === 'ru' ? 'Группа' : 'Group'}
+              </label>
+              <select
+                value={group}
+                onChange={(e) => setGroup(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white/90"
+                required
+              >
+                <option value="">
+                  {language === 'kz' ? 'Топты таңдаңыз' : language === 'ru' ? 'Выберите группу' : 'Select group'}
+                </option>
+                {groups.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
               <p className="text-red-700 text-sm">{error}</p>
@@ -204,5 +238,8 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+      
+    <Footer />
+    </>
   );
 }

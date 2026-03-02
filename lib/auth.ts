@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
-import { logAuthenticationAttempt, logLogout } from './audit';
+import { logLogin, logLogout } from './audit';
 
-export async function signUp(email: string, password: string, name: string, role: string) {
+export async function signUp(email: string, password: string, name: string, role: string, group?: string) {
   try {
     // Регистрация в auth с метаданными
     const { data, error } = await supabase.auth.signUp({
@@ -11,19 +11,19 @@ export async function signUp(email: string, password: string, name: string, role
         data: {
           name,
           role,
+          group: group || '', // Добавляем группу в метаданные
         },
       },
     });
 
     if (error) {
       console.error('Auth signup error:', error);
-      // Log failed signup attempt
-      await logAuthenticationAttempt(email, role, false, undefined);
+      await logLogin('', email, role, false);
       return { data, error };
     }
 
     if (!data.user) {
-      await logAuthenticationAttempt(email, role, false, undefined);
+      await logLogin('', email, role, false);
       return { 
         data, 
         error: { 
@@ -34,28 +34,37 @@ export async function signUp(email: string, password: string, name: string, role
       };
     }
 
-    // Пытаемся создать запись в таблице users (если таблица существует)
+    // Создать запись в таблице students или teachers
     try {
-      await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          name,
-          email,
-          role,
-        });
+      if (role === 'student' && group) {
+        await supabase
+          .from('students')
+          .insert({
+            name,
+            email,
+            group_name: group,
+            gpa: 0,
+          });
+      } else if (role === 'teacher') {
+        await supabase
+          .from('teachers')
+          .insert({
+            name,
+            email,
+            subject: '', // Можно будет заполнить позже
+          });
+      }
     } catch (dbError) {
-      // Игнорируем ошибки БД - пользователь все равно создан в auth
       console.log('Database insert skipped or failed (this is OK):', dbError);
     }
 
     // Log successful signup
-    await logAuthenticationAttempt(email, role, true, data.user.id);
+    await logLogin(data.user.id, email, role, true);
 
     return { data, error: null };
   } catch (err) {
     console.error('Unexpected error in signUp:', err);
-    await logAuthenticationAttempt(email, role, false, undefined);
+    await logLogin('', email, role, false);
     return { 
       data: null, 
       error: { 
@@ -78,12 +87,12 @@ export async function signIn(email: string, password: string) {
 
   if (error || !data.user) {
     // Log failed login attempt
-    await logAuthenticationAttempt(email, role, false, undefined);
+    await logLogin('', email, role, false);
     return { data, error };
   }
 
   // Log successful login
-  await logAuthenticationAttempt(email, role, true, data.user.id);
+  await logLogin(data.user.id, email, role, true);
 
   return { data, error };
 }
@@ -115,13 +124,13 @@ export async function requestPasswordReset(email: string) {
       redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/reset-password`,
     });
 
-    // Log password reset request
-    await logAuthenticationAttempt(email, 'unknown', !error, undefined);
+    // Log password reset request (no user ID available yet)
+    await logLogin('', email, 'unknown', !error);
 
     return { error };
   } catch (err) {
     console.error('Unexpected error in requestPasswordReset:', err);
-    await logAuthenticationAttempt(email, 'unknown', false, undefined);
+    await logLogin('', email, 'unknown', false);
     return { error: err as Error };
   }
 }
@@ -143,7 +152,7 @@ export async function updatePassword(newPassword: string) {
     const role = user.user_metadata?.role || 'unknown';
 
     // Log password update
-    await logAuthenticationAttempt(email, role, !error, user.id);
+    await logLogin(user.id, email, role, !error);
 
     return { error };
   } catch (err) {

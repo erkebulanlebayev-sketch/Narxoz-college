@@ -1,115 +1,380 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UniversalLayout from '@/components/UniversalLayout';
+import { supabase } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/auth';
+
+interface Student {
+  id: number;
+  name: string;
+  group_name: string;
+  email: string;
+}
+
+interface Grade {
+  id: number;
+  student_id: number;
+  subject: string;
+  grade_type: string;
+  grade: number;
+  comment?: string;
+  created_at: string;
+  students?: { name: string; group_name: string };
+}
 
 export default function TeacherGradesPage() {
-  const [selectedGroup, setSelectedGroup] = useState('ИС-21');
-  const [selectedSubject, setSelectedSubject] = useState('Математика');
-  const [gradeType, setGradeType] = useState('lecture');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [canSubmitGrades, setCanSubmitGrades] = useState(true);
+  const [settingsMessage, setSettingsMessage] = useState('');
+  const [formData, setFormData] = useState({
+    student_id: '',
+    subject: '',
+    grade_type: 'lecture',
+    grade: 0,
+    comment: ''
+  });
 
-  const students = [
-    { id: 1, name: 'Алексеев Алексей', group: 'ИС-21', grades: { lecture: 85, srsp: 90, srs: 88, session: 92 } },
-    { id: 2, name: 'Борисова Мария', group: 'ИС-21', grades: { lecture: 92, srsp: 95, srs: 90, session: 94 } },
-    { id: 3, name: 'Васильев Иван', group: 'ИС-21', grades: { lecture: 78, srsp: 82, srs: 80, session: 85 } },
-  ];
+  useEffect(() => {
+    loadData();
+    checkGradeSubmissionSettings();
 
-  const gradeTypes = [
-    { value: 'lecture', label: 'Лекция' },
-    { value: 'srsp', label: 'СРСП' },
-    { value: 'srs', label: 'СРС' },
-    { value: 'session', label: 'Сессия' }
-  ];
+    // Real-time подписка на оценки
+    const gradesChannel = supabase
+      .channel('teacher-grades-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'grades' },
+        () => {
+          console.log('✅ Оценки обновлены через Realtime!');
+          loadGrades();
+        }
+      )
+      .subscribe();
 
-  function handleGradeChange(studentId: number, value: string) {
-    console.log(`Изменена оценка для студента ${studentId}: ${value}`);
+    // Real-time подписка на настройки
+    const settingsChannel = supabase
+      .channel('teacher-settings-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'settings' },
+        () => {
+          console.log('✅ Настройки обновлены через Realtime!');
+          checkGradeSubmissionSettings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(gradesChannel);
+      supabase.removeChannel(settingsChannel);
+    };
+  }, []);
+
+  async function checkGradeSubmissionSettings() {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'grade_submission_window')
+        .single();
+
+      if (error) throw error;
+
+      const settings = data?.value as any;
+      setCanSubmitGrades(settings?.enabled || false);
+      setSettingsMessage(settings?.message || 'Выставление оценок закрыто');
+    } catch (error) {
+      console.error('Ошибка проверки настроек:', error);
+    }
+  }
+
+  async function loadData() {
+    await Promise.all([loadStudents(), loadGrades()]);
+    setLoading(false);
+  }
+
+  async function loadStudents() {
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select('id, name, group_name, email')
+        .order('name');
+
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (error) {
+      console.error('Ошибка загрузки студентов:', error);
+    }
+  }
+
+  async function loadGrades() {
+    try {
+      const { data, error } = await supabase
+        .from('grades')
+        .select(`
+          *,
+          students (name, group_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setGrades(data || []);
+    } catch (error) {
+      console.error('Ошибка загрузки оценок:', error);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    // Проверка настроек
+    if (!canSubmitGrades) {
+      alert(`🚫 ${settingsMessage}`);
+      return;
+    }
+
+    try {
+      const user = await getCurrentUser();
+      
+      // Получить ID учителя
+      const { data: teacherData } = await supabase
+        .from('teachers')
+        .select('id')
+        .eq('email', user?.email)
+        .single();
+
+      if (!teacherData) {
+        alert('Ошибка: учитель не найден');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('grades')
+        .insert([{
+          student_id: Number(formData.student_id),
+          teacher_id: teacherData.id,
+          subject: formData.subject,
+          grade_type: formData.grade_type,
+          grade: Number(formData.grade),
+          comment: formData.comment || null
+        }]);
+
+      if (error) throw error;
+
+      alert('✅ Оценка выставлена!');
+      setFormData({
+        student_id: '',
+        subject: '',
+        grade_type: 'lecture',
+        grade: 0,
+        comment: ''
+      });
+      setShowModal(false);
+      loadGrades();
+    } catch (error: any) {
+      alert('❌ Ошибка: ' + error.message);
+    }
+  }
+
+  if (loading) {
+    return (
+      <UniversalLayout role="teacher">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">⏳</div>
+          <p className="text-xl gradient-text font-bold">Загрузка...</p>
+        </div>
+      </UniversalLayout>
+    );
   }
 
   return (
     <UniversalLayout role="teacher">
       <div className="animate-fadeIn">
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-2">Управление оценками</h1>
-          <p className="text-gray-600">Выставление и редактирование оценок</p>
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+              📊 Управление оценками
+            </h1>
+            <p className="text-gray-600">Выставление оценок студентам</p>
+          </div>
+          <button
+            onClick={() => {
+              if (!canSubmitGrades) {
+                alert(`🚫 ${settingsMessage}`);
+                return;
+              }
+              setShowModal(true);
+            }}
+            className={`btn-primary ${!canSubmitGrades ? 'opacity-50' : ''}`}
+          >
+            ➕ Выставить оценку
+          </button>
         </div>
 
-        <div className="ferris-card rounded-xl p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Группа</label>
-              <select
-                value={selectedGroup}
-                onChange={(e) => setSelectedGroup(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              >
-                <option value="ИС-21">ИС-21</option>
-                <option value="ПО-22">ПО-22</option>
-                <option value="ИС-22">ИС-22</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Предмет</label>
-              <select
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              >
-                <option value="Математика">Математика</option>
-                <option value="Алгебра">Алгебра</option>
-                <option value="Физика">Физика</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Тип оценки</label>
-              <select
-                value={gradeType}
-                onChange={(e) => setGradeType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              >
-                {gradeTypes.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+        {/* Статус выставления оценок */}
+        <div className={`ferris-card p-4 mb-6 ${
+          canSubmitGrades 
+            ? 'bg-green-50 border-2 border-green-200' 
+            : 'bg-red-50 border-2 border-red-200'
+        }`}>
+          <p className={`font-bold ${
+            canSubmitGrades ? 'text-green-700' : 'text-red-700'
+          }`}>
+            {canSubmitGrades ? '✅ Выставление оценок открыто' : `🚫 ${settingsMessage}`}
+          </p>
+        </div>
 
+        {/* Последние оценки */}
+        <div className="ferris-card p-6 shadow-colorful">
+          <h2 className="text-2xl font-bold gradient-text mb-4">
+            📝 Последние выставленные оценки
+          </h2>
           <div className="space-y-3">
-            {students.map((student) => (
-              <div key={student.id} className="ferris-card rounded-lg p-4 hover:shadow-lg transition-all">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {grades.map((grade, index) => (
+              <div
+                key={grade.id}
+                className="bg-white p-4 rounded-xl border-2 border-gray-100 hover:border-green-300 transition-all"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="font-bold text-lg">{student.name}</p>
-                    <p className="text-sm text-gray-600">Группа: {student.group}</p>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {grade.students?.name || 'Студент'}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {grade.students?.group_name} • {grade.subject} • {grade.grade_type}
+                    </p>
+                    {grade.comment && (
+                      <p className="text-gray-500 text-sm mt-1">💬 {grade.comment}</p>
+                    )}
+                    <p className="text-gray-400 text-xs mt-1">
+                      {new Date(grade.created_at).toLocaleString('ru-RU')}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-1">Текущая оценка</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {student.grades[gradeType as keyof typeof student.grades]}
-                      </p>
-                    </div>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      placeholder="Новая оценка"
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleGradeChange(student.id, (e.target as HTMLInputElement).value);
-                          (e.target as HTMLInputElement).value = '';
-                        }
-                      }}
-                    />
-                    <button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all">
-                      Сохранить
-                    </button>
+                  <div className="text-3xl font-black gradient-text">
+                    {grade.grade}
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {grades.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Оценки пока не выставлены</p>
+            </div>
+          )}
         </div>
+
+        {/* Модальное окно */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-2xl w-full">
+              <h2 className="text-2xl font-bold gradient-text mb-4">
+                ➕ Выставить оценку
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Студент
+                  </label>
+                  <select
+                    value={formData.student_id}
+                    onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    required
+                  >
+                    <option value="">Выберите студента</option>
+                    {students.map(student => (
+                      <option key={student.id} value={student.id}>
+                        {student.name} ({student.group_name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Предмет
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      placeholder="Математика"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Тип оценки
+                    </label>
+                    <select
+                      value={formData.grade_type}
+                      onChange={(e) => setFormData({ ...formData, grade_type: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    >
+                      <option value="lecture">Лекция</option>
+                      <option value="srsp">СРСП</option>
+                      <option value="srs">СРС</option>
+                      <option value="midterm">Рубежный</option>
+                      <option value="final">Экзамен</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Оценка (0-100)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.grade}
+                    onChange={(e) => setFormData({ ...formData, grade: Number(e.target.value) })}
+                    min="0"
+                    max="100"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Комментарий (опционально)
+                  </label>
+                  <textarea
+                    value={formData.comment}
+                    onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                    rows={3}
+                    placeholder="Дополнительная информация..."
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 btn-secondary"
+                  >
+                    ❌ Отмена
+                  </button>
+                  <button type="submit" className="flex-1 btn-primary">
+                    ✅ Выставить оценку
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </UniversalLayout>
   );

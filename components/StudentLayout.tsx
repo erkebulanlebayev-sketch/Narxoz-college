@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import PillNav from '@/components/PillNav';
+import Footer from '@/components/Footer';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -54,28 +55,32 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Декоративные блобы */}
-      <div className="decorative-blob blob-1"></div>
-      <div className="decorative-blob blob-2"></div>
-      <div className="decorative-blob blob-3"></div>
+    <>
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Декоративные блобы */}
+        <div className="decorative-blob blob-1"></div>
+        <div className="decorative-blob blob-2"></div>
+        <div className="decorative-blob blob-3"></div>
 
-      <PillNav
-        logo="https://img.hhcdn.ru/employer-logo/7337850.png"
-        logoAlt="Narxoz College"
-        items={navItems}
-        activeHref={pathname}
-        baseColor="#667eea"
-        pillColor="#ffffff"
-        hoveredPillTextColor="#ffffff"
-        pillTextColor="#667eea"
-        userName={user?.user_metadata?.name}
-        onLogout={handleLogout}
-      />
+        <PillNav
+          logo="https://img.hhcdn.ru/employer-logo/7337850.png"
+          logoAlt="Narxoz College"
+          items={navItems}
+          activeHref={pathname}
+          baseColor="#667eea"
+          pillColor="#ffffff"
+          hoveredPillTextColor="#ffffff"
+          pillTextColor="#667eea"
+          userName={user?.user_metadata?.name}
+          onLogout={handleLogout}
+        />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-20 md:py-24 relative z-10">
-        {children}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-20 md:py-24 relative z-10">
+          {children}
+        </div>
       </div>
-    </div>
+
+      <Footer />
+    </>
   );
 }

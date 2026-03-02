@@ -1,107 +1,148 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import StudentLayout from '@/components/StudentLayout';
+import { supabase } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/auth';
 
-const scheduleData = [
-  {
-    day: 'Понедельник',
-    lessons: [
-      { time: '09:00 - 10:30', subject: 'Алгоритмы и структуры данных', teacher: 'Иванов И.И.', room: 'А-101', type: 'Лекция' },
-      { time: '10:45 - 12:15', subject: 'Базы данных', teacher: 'Петрова А.С.', room: 'Б-201', type: 'Практика' },
-      { time: '13:00 - 14:30', subject: 'Веб-разработка', teacher: 'Сидоров П.К.', room: 'А-102', type: 'Лаб. работа' },
-    ]
-  },
-  {
-    day: 'Вторник',
-    lessons: [
-      { time: '09:00 - 10:30', subject: 'Математический анализ', teacher: 'Козлова М.В.', room: 'В-301', type: 'Лекция' },
-      { time: '10:45 - 12:15', subject: 'Английский язык', teacher: 'Smith J.', room: 'Б-105', type: 'Практика' },
-      { time: '13:00 - 14:30', subject: 'Физика', teacher: 'Новиков А.П.', room: 'В-202', type: 'Лекция' },
-    ]
-  },
-  {
-    day: 'Среда',
-    lessons: [
-      { time: '09:00 - 10:30', subject: 'Операционные системы', teacher: 'Волков Д.С.', room: 'А-103', type: 'Лекция' },
-      { time: '10:45 - 12:15', subject: 'Алгоритмы и структуры данных', teacher: 'Иванов И.И.', room: 'А-101', type: 'Практика' },
-    ]
-  },
-  {
-    day: 'Четверг',
-    lessons: [
-      { time: '09:00 - 10:30', subject: 'Базы данных', teacher: 'Петрова А.С.', room: 'Б-201', type: 'Лекция' },
-      { time: '10:45 - 12:15', subject: 'Веб-разработка', teacher: 'Сидоров П.К.', room: 'А-102', type: 'Практика' },
-      { time: '13:00 - 14:30', subject: 'Математический анализ', teacher: 'Козлова М.В.', room: 'В-301', type: 'Практика' },
-    ]
-  },
-  {
-    day: 'Пятница',
-    lessons: [
-      { time: '09:00 - 10:30', subject: 'Английский язык', teacher: 'Smith J.', room: 'Б-105', type: 'Практика' },
-      { time: '10:45 - 12:15', subject: 'Физическая культура', teacher: 'Орлов С.Н.', room: 'Спортзал', type: 'Практика' },
-    ]
-  },
-];
+interface Schedule {
+  id: number;
+  day: number; // Изменено с day_of_week на day
+  start_time: string;
+  end_time: string;
+  subject: string;
+  teacher_id?: number;
+  group_name: string;
+  room: string;
+}
 
-const typeColors: { [key: string]: string } = {
-  'Лекция': 'from-blue-500 to-indigo-500',
-  'Практика': 'from-purple-500 to-pink-500',
-  'Лаб. работа': 'from-green-500 to-emerald-500',
-};
+export default function StudentSchedulePage() {
+  const [schedule, setSchedule] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userGroup, setUserGroup] = useState<string>('');
 
-export default function SchedulePage() {
+  const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+
+  useEffect(() => {
+    loadSchedule();
+
+    // Real-time подписка
+    const channel = supabase
+      .channel('student-schedule-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'schedule' },
+        () => {
+          console.log('✅ Расписание обновлено через Realtime!');
+          loadSchedule();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  async function loadSchedule() {
+    try {
+      // Получить группу студента
+      const user = await getCurrentUser();
+      const group = user?.user_metadata?.group || '';
+      setUserGroup(group);
+
+      // Загрузить расписание для группы студента
+      const { data, error } = await supabase
+        .from('schedule')
+        .select('*')
+        .eq('group_name', group)
+        .order('day') // Изменено с day_of_week на day
+        .order('start_time');
+
+      if (error) throw error;
+      setSchedule(data || []);
+    } catch (error) {
+      console.error('Ошибка загрузки расписания:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <StudentLayout>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 animate-pulse">⏳</div>
+          <p className="text-xl gradient-text font-bold">Загрузка расписания...</p>
+        </div>
+      </StudentLayout>
+    );
+  }
+
   return (
     <StudentLayout>
-      <div className="mb-8 animate-fadeIn text-center">
-        <h1 className="text-5xl font-bold mb-3 text-black">
-          Расписание занятий
-          <span className="inline-block ml-2">📅</span>
-        </h1>
-        <p className="text-gray-600 text-xl">Ваше расписание на неделю</p>
-      </div>
-
       <div className="space-y-6">
-        {scheduleData.map((day, dayIndex) => (
-          <div
-            key={day.day}
-            className="ferris-card p-6 animate-fadeIn"
-            style={{ animationDelay: `${dayIndex * 0.1}s` }}
-          >
-            <h2 className="text-2xl font-bold text-primary mb-4">{day.day}</h2>
-            <div className="space-y-3">
-              {day.lessons.map((lesson, lessonIndex) => (
-                <div
-                  key={lessonIndex}
-                  className="ferris-card p-4 hover-lift"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="bg-primary text-white px-4 py-2 rounded-lg text-center min-w-[120px] font-bold">
-                      <p className="text-sm">{lesson.time}</p>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-bold text-lg text-gray-800">{lesson.subject}</p>
-                        <span className="badge-secondary">
-                          {lesson.type}
-                        </span>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            <span className="gradient-text">🗓️ Расписание занятий</span>
+          </h1>
+          <p className="text-gray-600 font-medium">
+            Группа: <span className="gradient-text font-bold">{userGroup}</span>
+          </p>
+        </div>
+
+        {/* Расписание по дням */}
+        <div className="space-y-6">
+          {days.map((day, dayIndex) => {
+            const daySchedule = schedule.filter(s => s.day === dayIndex); // Изменено с day_of_week на day
+            
+            if (daySchedule.length === 0) return null;
+
+            return (
+              <div key={dayIndex} className="ferris-card p-6 shadow-colorful glow animate-fadeIn">
+                <h2 className="text-2xl font-bold gradient-text mb-4">{day}</h2>
+                <div className="space-y-3">
+                  {daySchedule.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="bg-white p-5 rounded-xl border-2 border-purple-100 hover:border-purple-300 hover:shadow-lg transition-all"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-2xl font-black gradient-text">
+                              {item.start_time}
+                            </span>
+                            <span className="text-gray-400">→</span>
+                            <span className="text-xl font-bold text-gray-600">
+                              {item.end_time}
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">
+                            📚 {item.subject}
+                          </h3>
+                          <div className="flex items-center gap-4 text-gray-600">
+                            <span className="badge">🚪 Аудитория {item.room}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <span>👨‍🏫</span>
-                          {lesson.teacher}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>🚪</span>
-                          {lesson.room}
-                        </span>
-                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {schedule.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📅</div>
+            <p className="text-gray-600 text-lg">
+              Расписание для вашей группы пока не добавлено
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </StudentLayout>
   );

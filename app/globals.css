@@ -2,6 +2,214 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --shadow-colorful: 0 10px 40px rgba(102, 126, 234, 0.3);
+    --shadow-hover: 0 20px 60px rgba(102, 126, 234, 0.4);
+  }
+
+  body {
+    @apply bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 text-gray-900;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer components {
+  /* Современные карточки */
+  .modern-card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100;
+    @apply hover:-translate-y-1;
+  }
+
+  .modern-card-gradient {
+    @apply bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg hover:shadow-2xl;
+    @apply transition-all duration-300 border border-purple-100 hover:-translate-y-1;
+  }
+
+  /* Кнопки */
+  .btn-modern {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300;
+    @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white;
+    @apply hover:from-purple-700 hover:to-pink-700 hover:shadow-lg hover:-translate-y-0.5;
+    @apply active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-modern-outline {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300;
+    @apply border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white;
+    @apply hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-modern-success {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300;
+    @apply bg-gradient-to-r from-green-500 to-emerald-600 text-white;
+    @apply hover:from-green-600 hover:to-emerald-700 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .btn-modern-danger {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300;
+    @apply bg-gradient-to-r from-red-500 to-pink-600 text-white;
+    @apply hover:from-red-600 hover:to-pink-700 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Инпуты */
+  .input-modern {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200;
+    @apply focus:border-purple-500 focus:ring-4 focus:ring-purple-100;
+    @apply transition-all duration-200 bg-white;
+  }
+
+  .textarea-modern {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200;
+    @apply focus:border-purple-500 focus:ring-4 focus:ring-purple-100;
+    @apply transition-all duration-200 bg-white resize-none;
+  }
+
+  /* Бейджи */
+  .badge-modern {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+    @apply bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700;
+  }
+
+  .badge-modern-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+    @apply bg-gradient-to-r from-green-100 to-emerald-100 text-green-700;
+  }
+
+  .badge-modern-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+    @apply bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700;
+  }
+
+  .badge-modern-info {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+    @apply bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700;
+  }
+
+  /* Заголовки */
+  .heading-modern {
+    @apply text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600;
+    @apply bg-clip-text text-transparent;
+  }
+
+  .heading-modern-lg {
+    @apply text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600;
+    @apply bg-clip-text text-transparent;
+  }
+
+  /* Контейнеры */
+  .container-modern {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  /* Анимации */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Градиентные фоны */
+  .bg-gradient-modern {
+    @apply bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50;
+  }
+
+  .bg-gradient-card {
+    @apply bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30;
+  }
+
+  /* Тени */
+  .shadow-modern {
+    box-shadow: 0 10px 40px rgba(139, 92, 246, 0.15);
+  }
+
+  .shadow-modern-lg {
+    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2);
+  }
+
+  /* Статистические карточки */
+  .stat-card {
+    @apply modern-card p-6 flex items-center gap-4;
+  }
+
+  .stat-icon {
+    @apply w-16 h-16 rounded-2xl flex items-center justify-center text-3xl;
+    @apply bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg;
+  }
+
+  .stat-content {
+    @apply flex-1;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-gray-900;
+  }
+
+  .stat-label {
+    @apply text-sm text-gray-600 font-medium;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Скроллбар */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gradient-to-b from-purple-400 to-pink-400 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply from-purple-500 to-pink-500;
+}
+
 /* Colorful Modern Design */
 :root {
   --primary-red: #DC2626;

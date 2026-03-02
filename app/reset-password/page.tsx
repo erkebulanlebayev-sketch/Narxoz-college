@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { updatePassword } from '@/lib/auth';
 import dynamic from 'next/dynamic';
 import StarBorder from '@/components/StarBorder';
+import Footer from '@/components/Footer';
 import { translations, Language } from '@/lib/translations';
 
 const Galaxy = dynamic(() => import('@/components/Galaxy'), {
@@ -118,23 +119,24 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-        <Galaxy
-          mouseRepulsion
-          mouseInteraction
-          density={1}
-          glowIntensity={0.3}
-          saturation={0.2}
-          hueShift={200}
-          twinkleIntensity={0.3}
-          rotationSpeed={0.08}
-          repulsionStrength={2}
-          autoCenterRepulsion={0}
-          starSpeed={0.5}
-          speed={1}
-        />
-      </div>
+    <>
+      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+        <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+          <Galaxy
+            mouseRepulsion
+            mouseInteraction
+            density={1}
+            glowIntensity={0.3}
+            saturation={0.2}
+            hueShift={200}
+            twinkleIntensity={0.3}
+            rotationSpeed={0.08}
+            repulsionStrength={2}
+            autoCenterRepulsion={0}
+            starSpeed={0.5}
+            speed={1}
+          />
+        </div>
 
       {/* Language Switcher */}
       <div className="absolute top-4 right-4 z-20 flex gap-2">
@@ -239,5 +241,8 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+      
+    <Footer />
+    </>
   );
 }

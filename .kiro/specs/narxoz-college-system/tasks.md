@@ -56,7 +56,7 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 44: Audit log integrity**
     - **Validates: Requirements 15.6**
 
-- [~] 3. Implement news management system
+- [ ] 3. Implement news management system
   - [ ] 3.1 Create news API functions
     - Write createNews function
     - Write updateNews function
@@ -91,10 +91,10 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 34: Universal real-time data propagation** (news subset)
     - **Validates: Requirements 4.2, 4.3, 4.4, 11.4**
 
-- [~] 4. Checkpoint - Ensure all tests pass
+- [ ] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 5. Implement schedule management system
+- [ ] 5. Implement schedule management system
   - [ ] 5.1 Create schedule API functions
     - Write createSchedule function
     - Write updateSchedule function
@@ -137,7 +137,7 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 34: Universal real-time data propagation** (schedule subset)
     - **Validates: Requirements 3.2, 3.3, 11.3**
 
-- [~] 6. Implement library management system
+- [ ] 6. Implement library management system
   - [ ] 6.1 Create library API functions
     - Write createBook function
     - Write updateBook function
@@ -172,10 +172,10 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 34: Universal real-time data propagation** (library subset)
     - **Validates: Requirements 8.2, 8.3, 8.4, 11.5**
 
-- [~] 7. Checkpoint - Ensure all tests pass
+- [ ] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 8. Implement grade submission window control
+- [ ] 8. Implement grade submission window control
   - [ ] 8.1 Create settings API functions
     - Write getSetting function
     - Write updateSetting function
@@ -201,7 +201,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Display error message on submission attempt when closed
     - _Requirements: 5.3, 5.4, 6.4, 6.5_
 
-- [~] 9. Enhance grades management system
+- [ ] 9. Enhance grades management system
   - [ ] 9.1 Update teacher grades submission page
     - Add grade submission form with validation
     - Add subject and student selection dropdowns
@@ -228,7 +228,7 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 34: Universal real-time data propagation** (grades subset)
     - **Validates: Requirements 5.2, 11.2**
 
-- [~] 10. Complete materials exchange system
+- [ ] 10. Complete materials exchange system
   - [ ] 10.1 Update materials API functions
     - Enhance file upload with metadata storage
     - Add file access control checks
@@ -269,10 +269,10 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 34: Universal real-time data propagation** (materials subset)
     - **Validates: Requirements 9.2, 9.3, 11.1**
 
-- [~] 11. Checkpoint - Ensure all tests pass
+- [ ] 11. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 12. Implement teacher assignment management
+- [ ] 12. Implement teacher assignment management
   - [ ] 12.1 Create teacher assignment API functions
     - Write assignSubjectToTeacher function
     - Write assignGroupToTeacher function
@@ -303,7 +303,7 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 34: Universal real-time data propagation** (assignments subset)
     - **Validates: Requirements 12.3, 12.4**
 
-- [~] 13. Implement comprehensive user management
+- [ ] 13. Implement comprehensive user management
   - [ ] 13.1 Create user management API functions
     - Write createUser function with role assignment
     - Write updateUserRole function
@@ -335,7 +335,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Test blocking already blocked user
     - Test role change validation
 
-- [~] 14. Enhance authentication and authorization
+- [ ] 14. Enhance authentication and authorization
   - [ ] 14.1 Implement comprehensive RBAC checks
     - Create middleware for route protection
     - Add role-based component rendering
@@ -375,10 +375,10 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 52: Single session enforcement**
     - **Validates: Requirements 20.3, 20.5**
 
-- [~] 15. Checkpoint - Ensure all tests pass
+- [ ] 15. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 16. Implement comprehensive error handling
+- [ ] 16. Implement comprehensive error handling
   - [ ] 16.1 Create error handling utilities
     - Write error message translation function
     - Write error logging function
@@ -411,7 +411,7 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 45: Action feedback display**
     - **Validates: Requirements 16.4, 16.5**
 
-- [~] 17. Enhance real-time synchronization
+- [ ] 17. Enhance real-time synchronization
   - [ ] 17.1 Implement connection monitoring
     - Add connection status indicator
     - Add automatic reconnection logic
@@ -431,7 +431,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Test across all tables (grades, schedule, news, shop, library, materials)
     - **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5, 3.2, 3.3, 4.2, 4.3, 4.4, 5.2, 7.2, 7.3, 7.4, 8.2, 8.3, 8.4, 9.2, 9.3, 12.3, 12.4**
 
-- [~] 18. Implement language system enhancements
+- [ ] 18. Implement language system enhancements
   - [ ] 18.1 Complete translation coverage
     - Add missing translations for new features
     - Add error message translations
@@ -451,7 +451,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Add language indicator for content
     - _Requirements: 13.5_
 
-- [~] 19. Implement admin dashboard enhancements
+- [ ] 19. Implement admin dashboard enhancements
   - [ ] 19.1 Add statistics calculations
     - Calculate total students, teachers, groups
     - Calculate average GPA
@@ -477,10 +477,10 @@ The implementation follows an incremental approach where each task builds on pre
     - **Property 46: Admin notifications display**
     - **Validates: Requirements 17.5**
 
-- [~] 20. Checkpoint - Ensure all tests pass
+- [ ] 20. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 21. Implement comprehensive testing suite
+- [ ] 21. Implement comprehensive testing suite
   - [ ] 21.1 Set up testing infrastructure
     - Configure Jest for unit testing
     - Configure fast-check for property testing
@@ -518,7 +518,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Test concurrent updates
     - Test network failures
 
-- [~] 22. Performance optimization
+- [ ] 22. Performance optimization
   - [ ] 22.1 Optimize database queries
     - Add indexes for frequently queried fields
     - Optimize RLS policies
@@ -539,7 +539,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Measure API response times
     - Add performance logging
 
-- [~] 23. Security hardening
+- [ ] 23. Security hardening
   - [ ] 23.1 Review and test RLS policies
     - Test all RLS policies with different roles
     - Verify no unauthorized data access
@@ -559,7 +559,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Add CSRF protection
     - Configure secure cookies
 
-- [~] 24. Documentation and deployment preparation
+- [ ] 24. Documentation and deployment preparation
   - [ ] 24.1 Update documentation
     - Document all API functions
     - Document component props
@@ -579,7 +579,7 @@ The implementation follows an incremental approach where each task builds on pre
     - Add pre-deployment checks
     - Add rollback procedures
 
-- [~] 25. Final checkpoint - Comprehensive testing
+- [ ] 25. Final checkpoint - Comprehensive testing
   - Run all unit tests
   - Run all property tests
   - Run all integration tests

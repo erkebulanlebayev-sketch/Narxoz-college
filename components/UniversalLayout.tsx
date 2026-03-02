@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { translations, Language } from '@/lib/translations';
 import dynamic from 'next/dynamic';
+import Footer from '@/components/Footer';
 
 const PillNav = dynamic(() => import('@/components/PillNav'), {
   ssr: false,
@@ -57,7 +58,6 @@ export default function UniversalLayout({ children, role }: UniversalLayoutProps
         { label: t.teachers, href: '/admin/teachers' },
         { label: t.shop, href: '/admin/shop' },
         { label: t.users, href: '/admin/users' },
-        { label: t.audit, href: '/admin/audit' },
         { label: t.settings, href: '/admin/settings' }
       ];
     }
@@ -121,32 +121,38 @@ export default function UniversalLayout({ children, role }: UniversalLayoutProps
     );
   }
 
+  console.log('🟢 UniversalLayout: Rendering with Footer');
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Декоративные блобы */}
-      <div className="decorative-blob blob-1"></div>
-      <div className="decorative-blob blob-2"></div>
-      <div className="decorative-blob blob-3"></div>
+    <>
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Декоративные блобы */}
+        <div className="decorative-blob blob-1"></div>
+        <div className="decorative-blob blob-2"></div>
+        <div className="decorative-blob blob-3"></div>
 
-      <PillNav
-        logo="https://img.hhcdn.ru/employer-logo/7337850.png"
-        logoAlt="Narxoz College"
-        items={navItems}
-        activeHref={pathname}
-        baseColor={baseColor}
-        pillColor="#ffffff"
-        hoveredPillTextColor="#ffffff"
-        pillTextColor={baseColor}
-        userName={user?.user_metadata?.name}
-        onLogout={handleLogout}
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
-      />
+        <PillNav
+          logo="https://img.hhcdn.ru/employer-logo/7337850.png"
+          logoAlt="Narxoz College"
+          items={navItems}
+          activeHref={pathname}
+          baseColor={baseColor}
+          pillColor="#ffffff"
+          hoveredPillTextColor="#ffffff"
+          pillTextColor={baseColor}
+          userName={user?.user_metadata?.name}
+          onLogout={handleLogout}
+          currentLang={currentLang}
+          onLanguageChange={handleLanguageChange}
+        />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-20 md:py-24 relative z-10">
-        {children}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-20 md:py-24 relative z-10">
+          {children}
+        </div>
       </div>
-    </div>
+
+      <Footer />
+    </>
   );
 }
 

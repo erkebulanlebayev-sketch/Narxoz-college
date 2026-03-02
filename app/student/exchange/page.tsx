@@ -26,6 +26,35 @@ export default function ExchangePage() {
   useEffect(() => {
     loadCurrentUser();
     loadMaterials();
+
+    // Real-time подписка на материалы
+    const channel = supabase
+      .channel('exchange-materials-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'materials' },
+        () => {
+          console.log('✅ Материалы обновлены через Realtime!');
+          loadMaterials();
+          if (currentUserId) {
+            loadMyMaterials();
+          }
+        }
+      )
+      .subscribe();
+
+    // Fallback: обновление каждые 10 секунд
+    const interval = setInterval(() => {
+      loadMaterials();
+      if (currentUserId) {
+        loadMyMaterials();
+      }
+    }, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {

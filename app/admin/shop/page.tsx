@@ -49,13 +49,18 @@ export default function AdminShopPage() {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'shop_products' },
         () => {
+          console.log('✅ Магазин обновлен через Realtime!');
           loadProducts();
         }
       )
       .subscribe();
 
+    // Fallback: обновление каждые 5 секунд
+    const interval = setInterval(loadProducts, 5000);
+
     return () => {
       subscription.unsubscribe();
+      clearInterval(interval);
     };
   }, []);
 
