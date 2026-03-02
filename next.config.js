@@ -16,7 +16,7 @@ const nextConfig = {
   
   // Экспериментальные оптимизации
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // Отключено - требует дополнительный пакет critters
     optimizePackageImports: ['react-icons'],
   },
   
