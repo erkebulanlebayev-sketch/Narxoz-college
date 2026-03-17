@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
-import { GraduationCap, Users, Newspaper, Calendar, ShoppingBag, Settings, ShieldCheck, ArrowUpRight, Bell, TrendingUp, Activity } from 'lucide-react';
+import { GraduationCap, Users, Newspaper, Calendar, ShoppingBag, Settings, ShieldCheck, ArrowUpRight, Bell, TrendingUp, Activity, BarChart2 } from 'lucide-react';
 
 const stagger = {
   container: { hidden: {}, show: { transition: { staggerChildren: 0.08 } } },

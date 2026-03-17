@@ -1,3 +1,5 @@
+'use client';
+
 import './StarBorder.css';
 import React from 'react';
 
