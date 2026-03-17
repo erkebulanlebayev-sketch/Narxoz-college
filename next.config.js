@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   
   // Оптимизация производительности
+  swcMinify: true,
   compress: true,
   
   // Оптимизация изображений
