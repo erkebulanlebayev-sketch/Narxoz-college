@@ -115,7 +115,7 @@ export default function LoginPage() {
             {[
               { label: 'Студент', e: 'student@narxoz.kz', p: 'student123' },
               { label: 'Учитель', e: 'teacher@narxoz.kz', p: 'teacher123' },
-              { label: 'Админ', e: 'admin@narxoz.kz', p: 'admin123' },
+              { label: 'Админ', e: 'admin@narxoz.kz', p: 'xxx123' },
             ].map(a => (
               <button key={a.label} onClick={() => fillTest(a.e, a.p)}
                 className="py-2 px-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-all">

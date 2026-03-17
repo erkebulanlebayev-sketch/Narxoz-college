@@ -63,12 +63,12 @@ export default function LandingPage() {
   ];
 
   const specs = [
-    { id: "06130100", full: "Программное обеспечение", img: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600" },
-    { id: "04210100", full: "Правоведение", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600" },
-    { id: "04140100", full: "Учет и аудит", img: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600" },
-    { id: "04130100", full: "Менеджмент", img: "https://images.unsplash.com/photo-1454165833767-027ffea9e778?q=80&w=600" },
-    { id: "04140100", full: "Маркетинг", img: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?q=80&w=600" },
-    { id: "04120100", full: "Банковское дело", img: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=600" },
+    { id: "06130100", full: "Программное обеспечение", slug: "programmnoe-obespechenie", img: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600" },
+    { id: "04210100", full: "Правоведение", slug: "pravovedenie", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600" },
+    { id: "04140100", full: "Учет и аудит", slug: "uchet-i-audit", img: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600" },
+    { id: "04130100", full: "Менеджмент", slug: "menedzhment", img: "https://images.unsplash.com/photo-1454165833767-027ffea9e778?q=80&w=600" },
+    { id: "04140100", full: "Маркетинг", slug: "marketing", img: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?q=80&w=600" },
+    { id: "04120100", full: "Банковское дело", slug: "bankovskoe-delo", img: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=600" },
   ];
 
   if (checking) {
@@ -131,26 +131,27 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
             {specs.map((spec, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="group relative h-[350px] md:h-[450px] rounded-[32px] overflow-hidden border border-white/5 bg-white/[0.02]"
-              >
-                <img src={spec.img} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 group-hover:opacity-50 transition-all duration-1000" alt={spec.full} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
-                  <div>
-                    <p className="text-red-600 font-mono text-xs mb-3 tracking-widest">{spec.id}</p>
-                    <h3 className="text-3xl md:text-4xl font-black italic uppercase leading-none">{spec.full}</h3>
+              <Link href={`/specs/${spec.slug}`} key={i}>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: i * 0.1 }}
+                  className="group relative h-[350px] md:h-[450px] rounded-[32px] overflow-hidden border border-white/5 bg-white/[0.02] cursor-pointer"
+                >
+                  <img src={spec.img} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 group-hover:opacity-50 transition-all duration-1000" alt={spec.full} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                  <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
+                    <div>
+                      <p className="text-red-600 font-mono text-xs mb-3 tracking-widest">{spec.id}</p>
+                      <h3 className="text-3xl md:text-4xl font-black italic uppercase leading-none">{spec.full}</h3>
+                    </div>
+                    <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-red-600 group-hover:border-red-600 transition-all duration-300">
+                      <ArrowUpRight size={20} />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-red-600 group-hover:border-red-600 transition-all duration-300">
-                    <ArrowUpRight size={20} />
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>

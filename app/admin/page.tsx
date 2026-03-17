@@ -5,31 +5,47 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
-import { GraduationCap, Users, Newspaper, Calendar, ShoppingBag, Settings, ShieldCheck, ArrowUpRight, Bell, TrendingUp, Activity, BarChart2 } from 'lucide-react';
+import {
+  GraduationCap, Users, Newspaper, Calendar, ShoppingBag,
+  Settings, ShieldCheck, ArrowUpRight, Bell, TrendingUp, Activity, BarChart2
+} from 'lucide-react';
 
 const stagger = {
-  container: { hidden: {}, show: { transition: { staggerChildren: 0.08 } } },
-  item: { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } },
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.07 } } },
+  item: { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } },
 };
 
-// Animated bar chart
-function BarChart({ data, label }: { data: { label: string; value: number; max: number }[]; label: string }) {
+// Neon glow bar chart
+function GlowBar({ data, label, color = '#dc2626' }: {
+  data: { label: string; value: number; max: number }[];
+  label: string;
+  color?: string;
+}) {
   return (
     <div>
       <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-gray-600 mb-4">{label}</p>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {data.map((d, i) => (
           <div key={i}>
-            <div className="flex justify-between items-center mb-1">
+            <div className="flex justify-between items-center mb-1.5">
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{d.label}</span>
-              <span className="text-[10px] font-mono text-gray-600">{d.value}</span>
+              <span className="text-[10px] font-mono" style={{ color }}>{d.value}</span>
             </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-px bg-white/5 rounded-full overflow-visible relative">
               <motion.div
-                className="h-full bg-red-600 rounded-full"
+                className="h-px rounded-full absolute top-0 left-0"
+                style={{ background: color, boxShadow: `0 0 8px ${color}, 0 0 20px ${color}40` }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(d.value / d.max) * 100}%` }}
-                transition={{ duration: 1, delay: i * 0.1, ease: 'easeOut' }}
+                transition={{ duration: 1.2, delay: i * 0.12, ease: 'easeOut' }}
+              />
+              {/* Glow dot at end */}
+              <motion.div
+                className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                style={{ background: color, boxShadow: `0 0 6px ${color}` }}
+                initial={{ left: 0 }}
+                animate={{ left: `${(d.value / d.max) * 100}%` }}
+                transition={{ duration: 1.2, delay: i * 0.12, ease: 'easeOut' }}
               />
             </div>
           </div>
@@ -43,6 +59,7 @@ function BarChart({ data, label }: { data: { label: string; value: number; max: 
 function BroadcastTool() {
   const [msg, setMsg] = useState('');
   const [sent, setSent] = useState(false);
+  const [target, setTarget] = useState('Всем');
 
   function send() {
     if (!msg.trim()) return;
@@ -52,35 +69,65 @@ function BroadcastTool() {
   }
 
   return (
-    <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
+    <div>
       <div className="flex items-center gap-2 mb-4">
-        <Bell size={14} className="text-red-500" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-500">Рассылка уведомлений</p>
+        <div className="w-6 h-6 rounded-lg bg-red-600/20 border border-red-600/30 flex items-center justify-center shadow-[0_0_8px_rgba(220,38,38,0.3)]">
+          <Bell size={12} className="text-red-500" />
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-500">Рассылка</p>
       </div>
       {sent ? (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="py-6 text-center">
-          <p className="text-green-500 font-black italic uppercase tracking-tighter">Отправлено всем ✓</p>
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+          className="py-8 text-center">
+          <p className="text-green-400 font-black italic uppercase tracking-tighter text-lg">Отправлено ✓</p>
+          <p className="text-gray-600 text-[10px] font-mono mt-1">Уведомление доставлено: {target}</p>
         </motion.div>
       ) : (
         <div className="space-y-3">
           <textarea value={msg} onChange={e => setMsg(e.target.value)} rows={3}
-            placeholder="Введите сообщение для всего колледжа..."
-            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors resize-none" />
-          <div className="flex gap-2">
+            placeholder="Введите сообщение для колледжа..."
+            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors resize-none font-mono text-[12px]" />
+          <div className="flex gap-2 flex-wrap">
             {['Студентам', 'Преподавателям', 'Всем'].map(t => (
-              <button key={t} className="px-3 py-1.5 rounded-lg border border-white/5 text-[9px] font-bold uppercase tracking-widest text-gray-600 hover:border-red-600/30 hover:text-red-500 transition-all">
+              <button key={t} onClick={() => setTarget(t)}
+                className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border ${
+                  target === t
+                    ? 'border-red-600/40 text-red-500 bg-red-600/10 shadow-[0_0_10px_rgba(220,38,38,0.15)]'
+                    : 'border-white/5 text-gray-600 hover:border-red-600/20 hover:text-red-500'
+                }`}>
                 {t}
               </button>
             ))}
             <button onClick={send} disabled={!msg.trim()}
-              className="ml-auto px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-30 text-white text-[9px] font-black italic uppercase tracking-tighter transition-colors">
-              Отправить
+              className="ml-auto px-5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-30 text-white text-[9px] font-black italic uppercase tracking-tighter transition-colors shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+              Отправить →
             </button>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// Glowing stat card
+function StatCard({ label, value, icon: Icon, id }: { label: string; value: number; icon: any; id: string }) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, borderColor: 'rgba(220,38,38,0.4)' }}
+      transition={{ duration: 0.2 }}
+      className="relative p-6 rounded-[20px] bg-white/[0.02] border border-white/5 overflow-hidden group cursor-default"
+    >
+      {/* Corner glow */}
+      <div className="absolute -top-6 -right-6 w-20 h-20 bg-red-600/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="flex justify-between items-start mb-4">
+        <div className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/5 group-hover:border-red-600/20 group-hover:bg-red-600/10 group-hover:shadow-[0_0_12px_rgba(220,38,38,0.2)] flex items-center justify-center transition-all">
+          <Icon size={15} className="text-gray-600 group-hover:text-red-500 transition-colors" />
+        </div>
+        <span className="text-[9px] font-mono text-gray-800">{id}</span>
+      </div>
+      <div className="text-3xl font-black italic tracking-tighter">{value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-1">{label}</div>
+    </motion.div>
   );
 }
 
@@ -115,13 +162,13 @@ export default function AdminDashboard() {
   ];
 
   const quickActions = [
-    { label: 'Новости', href: '/admin/news', icon: Newspaper, desc: 'Управление' },
-    { label: 'Расписание', href: '/admin/schedule', icon: Calendar, desc: 'Создать' },
-    { label: 'Студенты', href: '/admin/students', icon: GraduationCap, desc: 'Список' },
-    { label: 'Преподаватели', href: '/admin/teachers', icon: Users, desc: 'Список' },
-    { label: 'Магазин', href: '/admin/shop', icon: ShoppingBag, desc: 'Товары' },
-    { label: 'Пользователи', href: '/admin/users', icon: ShieldCheck, desc: 'Контроль' },
-    { label: 'Настройки', href: '/admin/settings', icon: Settings, desc: 'Система' },
+    { label: 'Новости', href: '/admin/news', icon: Newspaper },
+    { label: 'Расписание', href: '/admin/schedule', icon: Calendar },
+    { label: 'Студенты', href: '/admin/students', icon: GraduationCap },
+    { label: 'Преподаватели', href: '/admin/teachers', icon: Users },
+    { label: 'Магазин', href: '/admin/shop', icon: ShoppingBag },
+    { label: 'Пользователи', href: '/admin/users', icon: ShieldCheck },
+    { label: 'Настройки', href: '/admin/settings', icon: Settings },
   ];
 
   const analyticsData = {
@@ -153,77 +200,85 @@ export default function AdminDashboard() {
 
   return (
     <DarkLayout role="admin">
-      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-8">
+      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-10">
 
-        <motion.div variants={stagger.item} className="border-b border-white/5 pb-8">
-          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-2">Admin Portal</p>
-          <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
-            System <span className="text-white/20">Control</span>
+        {/* Brutalist header */}
+        <motion.div variants={stagger.item} className="relative border-b border-white/5 pb-8 overflow-hidden">
+          <div className="absolute -bottom-20 -left-10 w-64 h-64 bg-red-600/5 rounded-full blur-3xl pointer-events-none" />
+          <p className="text-red-600 font-bold tracking-[0.5em] uppercase text-[9px] mb-3 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(220,38,38,0.8)]" />
+            Admin Portal · Live
+          </p>
+          <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none">
+            System<br /><span className="text-white/10">Control</span>
           </h1>
         </motion.div>
 
         {/* Stats */}
         <motion.div variants={stagger.item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {statCards.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div key={s.id} className="p-6 rounded-[20px] bg-white/[0.02] border border-white/5 hover:border-red-600/20 transition-all group">
-                <div className="flex justify-between items-start mb-4">
-                  <Icon size={18} className="text-gray-600 group-hover:text-red-500 transition-colors" />
-                  <span className="text-[9px] font-mono text-gray-700">{s.id}</span>
-                </div>
-                <div className="text-3xl font-black italic tracking-tighter">{s.value}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-1">{s.label}</div>
-              </div>
-            );
-          })}
+          {statCards.map(s => <StatCard key={s.id} {...s} />)}
         </motion.div>
 
         {/* Quick Actions */}
         <motion.div variants={stagger.item}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-600 mb-4">Управление</p>
+          <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-gray-600 mb-4">Управление системой</p>
           <div className="grid grid-cols-4 md:grid-cols-7 gap-3">
             {quickActions.map((a) => {
               const Icon = a.icon;
               return (
-                <button key={a.href} onClick={() => router.push(a.href)}
-                  className="group p-4 rounded-[20px] bg-white/[0.02] border border-white/5 hover:border-red-600/30 hover:shadow-[0_0_20px_rgba(220,38,38,0.08)] transition-all text-left">
-                  <Icon size={18} className="text-gray-600 group-hover:text-red-500 transition-colors mb-2" />
-                  <p className="text-[9px] font-black italic uppercase tracking-tighter">{a.label}</p>
-                </button>
+                <motion.button key={a.href}
+                  whileHover={{ scale: 1.04, borderColor: 'rgba(220,38,38,0.4)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => router.push(a.href)}
+                  className="group p-4 rounded-[18px] bg-white/[0.02] border border-white/5 hover:shadow-[0_0_20px_rgba(220,38,38,0.08)] transition-shadow text-left"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-white/[0.03] group-hover:bg-red-600/10 group-hover:border-red-600/20 group-hover:shadow-[0_0_10px_rgba(220,38,38,0.2)] border border-white/5 flex items-center justify-center mb-2.5 transition-all">
+                    <Icon size={14} className="text-gray-600 group-hover:text-red-500 transition-colors" />
+                  </div>
+                  <p className="text-[9px] font-black italic uppercase tracking-tighter text-gray-400 group-hover:text-white transition-colors">{a.label}</p>
+                </motion.button>
               );
             })}
           </div>
         </motion.div>
 
-        {/* Analytics */}
-        <motion.div variants={stagger.item} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={14} className="text-red-500" />
-              <span className="text-[9px] font-bold uppercase tracking-widest text-red-500">Live</span>
-            </div>
-            <BarChart data={analyticsData.load} label="Нагрузка колледжа" />
-          </div>
-          <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
-            <div className="flex items-center gap-2 mb-1">
-              <BarChart2 size={14} className="text-blue-500" />
-            </div>
-            <BarChart data={analyticsData.performance} label="Успеваемость студентов %" />
-          </div>
-          <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
-            <div className="flex items-center gap-2 mb-1">
-              <Activity size={14} className="text-green-500" />
-            </div>
-            <BarChart data={analyticsData.activity} label="Активность персонала" />
-          </div>
+        {/* Analytics — neon glow bars */}
+        <motion.div variants={stagger.item} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {[
+            { data: analyticsData.load, label: 'Нагрузка колледжа', icon: TrendingUp, color: '#dc2626', badge: 'Live' },
+            { data: analyticsData.performance, label: 'Успеваемость %', icon: BarChart2, color: '#3b82f6', badge: null },
+            { data: analyticsData.activity, label: 'Активность персонала', icon: Activity, color: '#22c55e', badge: null },
+          ].map(({ data, label, icon: Icon, color, badge }, i) => (
+            <motion.div key={i}
+              whileHover={{ scale: 1.01, borderColor: `${color}40` }}
+              transition={{ duration: 0.2 }}
+              className="relative rounded-[24px] bg-white/[0.02] border border-white/5 p-6 overflow-hidden"
+            >
+              <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-30 pointer-events-none" style={{ background: color }} />
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${color}20`, border: `1px solid ${color}30`, boxShadow: `0 0 8px ${color}30` }}>
+                  <Icon size={12} style={{ color }} />
+                </div>
+                {badge && <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color, background: `${color}15`, border: `1px solid ${color}30` }}>{badge}</span>}
+              </div>
+              <GlowBar data={data} label={label} color={color} />
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Broadcast + Activity */}
-        <motion.div variants={stagger.item} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <BroadcastTool />
+        <motion.div variants={stagger.item} className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <motion.div
+            whileHover={{ borderColor: 'rgba(220,38,38,0.2)' }}
+            className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6"
+          >
+            <BroadcastTool />
+          </motion.div>
 
-          <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
+          <motion.div
+            whileHover={{ borderColor: 'rgba(255,255,255,0.08)' }}
+            className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6"
+          >
             <div className="flex justify-between items-center mb-6">
               <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-500">Последняя активность</p>
               <button onClick={() => router.push('/admin/news')} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-gray-600 hover:text-red-500 transition-colors">
@@ -231,19 +286,27 @@ export default function AdminDashboard() {
               </button>
             </div>
             <div className="space-y-2">
-              {recentActivity.length > 0 ? recentActivity.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+              {recentActivity.length > 0 ? recentActivity.map((item, i) => (
+                <motion.div key={item.id}
+                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                >
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-bold text-white truncate">{item.title}</p>
                     <p className="text-[9px] font-mono text-gray-600 mt-0.5">{new Date(item.created_at).toLocaleString('ru-RU')}</p>
                   </div>
-                  <span className={`ml-3 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${item.published ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-yellow-500 border-yellow-500/20 bg-yellow-500/5'}`}>
+                  <span className={`ml-3 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                    item.published
+                      ? 'text-green-500 border-green-500/20 bg-green-500/5 shadow-[0_0_8px_rgba(34,197,94,0.15)]'
+                      : 'text-yellow-500 border-yellow-500/20 bg-yellow-500/5'
+                  }`}>
                     {item.published ? 'Live' : 'Draft'}
                   </span>
-                </div>
+                </motion.div>
               )) : <p className="text-gray-700 text-sm text-center py-6">Активности пока нет</p>}
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
       </motion.div>

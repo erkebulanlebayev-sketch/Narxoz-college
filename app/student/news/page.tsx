@@ -7,9 +7,18 @@ import { supabase } from '@/lib/supabase';
 import { Search, Tag } from 'lucide-react';
 
 const stagger = {
-  container: { hidden: {}, show: { transition: { staggerChildren: 0.07 } } },
-  item: { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } },
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.08 } } },
+  item: { hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1, transition: { duration: 0.5 } } },
 };
+
+const BG_IMAGES = [
+  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=600',
+  'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=600',
+  'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=600',
+  'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?q=80&w=600',
+  'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=600',
+  'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=600',
+];
 
 export default function StudentNewsPage() {
   const [news, setNews] = useState<any[]>([]);
@@ -19,7 +28,9 @@ export default function StudentNewsPage() {
 
   useEffect(() => {
     loadNews();
-    const ch = supabase.channel('student-news').on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, loadNews).subscribe();
+    const ch = supabase.channel('student-news-v2')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, loadNews)
+      .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
 
@@ -30,19 +41,24 @@ export default function StudentNewsPage() {
   }
 
   const categories = ['all', ...Array.from(new Set(news.map((n: any) => n.category).filter(Boolean)))];
-  const filtered = news.filter(n =>
+  const filtered = news.filter((n: any) =>
     (category === 'all' || n.category === category) &&
     (n.title.toLowerCase().includes(search.toLowerCase()) || n.content.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
     <DarkLayout role="student">
-      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-8">
+      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-10">
 
-        <motion.div variants={stagger.item} className="border-b border-white/5 pb-8">
-          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-2">Student Portal</p>
-          <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
-            Новости <span className="text-white/20">колледжа</span>
+        {/* Header */}
+        <motion.div variants={stagger.item} className="relative border-b border-white/5 pb-8 overflow-hidden">
+          <div className="absolute -bottom-20 -left-10 w-64 h-64 bg-red-600/5 rounded-full blur-3xl pointer-events-none" />
+          <p className="text-red-600 font-bold tracking-[0.5em] uppercase text-[9px] mb-3 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(220,38,38,0.8)]" />
+            Student Portal · News
+          </p>
+          <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none">
+            Новости<br /><span className="text-white/10">Колледжа</span>
           </h1>
         </motion.div>
 
@@ -53,43 +69,63 @@ export default function StudentNewsPage() {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск..."
               className="w-full bg-white/[0.03] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors" />
           </div>
-          <select value={category} onChange={e => setCategory(e.target.value)}
-            className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-400 focus:outline-none focus:border-red-600/50 transition-colors">
-            {categories.map(c => <option key={c} value={c} className="bg-[#111]">{c === 'all' ? 'Все категории' : c}</option>)}
-          </select>
+          <div className="flex gap-2 overflow-x-auto">
+            {categories.map((c: any) => (
+              <button key={c} onClick={() => setCategory(c)}
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                  category === c
+                    ? 'bg-red-600/10 border-red-600/30 text-red-500'
+                    : 'border-white/10 text-gray-500 hover:border-white/20 hover:text-white'
+                }`}>
+                {c === 'all' ? 'Все' : c}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
-        {/* News grid */}
         {loading ? (
-          <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <motion.div variants={stagger.item} className="text-center py-24">
+            <p className="text-gray-700 font-bold uppercase tracking-widest text-sm font-mono">// no news found</p>
+          </motion.div>
         ) : (
-          <motion.div variants={stagger.container} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.map((item, i) => (
+          <motion.div variants={stagger.container} className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            {filtered.map((item: any, i: number) => (
               <motion.div key={item.id} variants={stagger.item}
-                className="group relative rounded-[24px] bg-white/[0.02] border border-white/5 hover:border-red-600/20 hover:shadow-[0_0_30px_rgba(220,38,38,0.06)] transition-all p-6 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 to-red-600/0 group-hover:from-red-600/[0.03] transition-all duration-500 pointer-events-none rounded-[24px]" />
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <h2 className="text-base font-black italic uppercase tracking-tighter leading-tight text-white group-hover:text-red-400 transition-colors">{item.title}</h2>
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.3 }}
+                className="group relative h-[320px] md:h-[420px] rounded-[32px] overflow-hidden border border-white/5 bg-white/[0.02]"
+              >
+                <img
+                  src={BG_IMAGES[i % BG_IMAGES.length]}
+                  className="absolute inset-0 w-full h-full object-cover opacity-25 group-hover:scale-105 group-hover:opacity-40 transition-all duration-1000"
+                  alt=""
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+
+                <div className="absolute bottom-0 left-0 right-0 p-8">
                   {item.category && (
-                    <span className="shrink-0 flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-red-500 border border-red-600/20 px-2 py-1 rounded-full">
-                      <Tag size={8} />{item.category}
-                    </span>
+                    <p className="text-red-500 font-mono text-xs mb-3 tracking-widest flex items-center gap-1">
+                      <Tag size={10} />{item.category}
+                    </p>
                   )}
-                </div>
-                <p className="text-[12px] text-gray-500 leading-relaxed line-clamp-4 mb-4">{item.content}</p>
-                <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <span className="text-[9px] font-mono text-gray-700">{new Date(item.created_at).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-gray-600">{item.author_name}</span>
+                  <h3 className="text-2xl md:text-3xl font-black italic uppercase leading-tight tracking-tighter mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-400 text-xs font-mono line-clamp-2 mb-4">{item.content}</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                    <span className="text-[9px] font-mono text-gray-600">
+                      {new Date(item.created_at).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-600">{item.author_name}</span>
+                  </div>
                 </div>
               </motion.div>
             ))}
           </motion.div>
-        )}
-
-        {!loading && filtered.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-gray-700 font-bold uppercase tracking-widest text-sm">Новостей не найдено</p>
-          </div>
         )}
 
       </motion.div>
