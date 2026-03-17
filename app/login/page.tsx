@@ -1,209 +1,130 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { signIn } from '@/lib/auth';
-import dynamic from 'next/dynamic';
-import StarBorder from '@/components/StarBorder';
-import Footer from '@/components/Footer';
-import { translations, Language } from '@/lib/translations';
-
-const Galaxy = dynamic(() => import('@/components/Galaxy'), {
-  ssr: false,
-  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900" />
-});
+import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState<Language>('ru');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const savedLang = localStorage.getItem('language') as Language;
-    if (savedLang && translations[savedLang]) {
-      setLanguage(savedLang);
-    }
-  }, []);
-
-  const t = translations[language];
-
-  const changeLanguage = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
-  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     const { data, error } = await signIn(email, password);
-    
-    if (error) {
-      setError('Ошибка входа: ' + error.message);
-      setLoading(false);
-      return;
-    }
-
+    if (error) { setError('Неверный email или пароль'); setLoading(false); return; }
     const role = data.user?.user_metadata?.role;
     if (role === 'admin') router.push('/admin');
     else if (role === 'teacher') router.push('/teacher');
-    else if (role === 'student') router.push('/student');
+    else router.push('/student');
   }
 
-  function handleTestLogin(testEmail: string, testPassword: string) {
-    setEmail(testEmail);
-    setPassword(testPassword);
-  }
-
-  if (!mounted) {
-    return null;
-  }
+  function fillTest(e: string, p: string) { setEmail(e); setPassword(p); }
 
   return (
-    <>
-      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-        {/* Galaxy Background */}
-        <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-          <Galaxy
-            mouseRepulsion
-            mouseInteraction
-            density={1}
-            glowIntensity={0.3}
-            saturation={0.2}
-            hueShift={200}
-            twinkleIntensity={0.3}
-            rotationSpeed={0.08}
-            repulsionStrength={2}
-            autoCenterRepulsion={0}
-            starSpeed={0.5}
-            speed={1}
-          />
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-red-600 flex items-center justify-center px-4">
+
+      {/* Back to landing */}
+      <Link href="/" className="fixed top-6 left-6 font-black italic text-sm tracking-tighter uppercase hover:text-red-600 transition-colors">
+        ← Narxoz <span className="text-red-600">College</span>
+      </Link>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        {/* Header */}
+        <div className="mb-10">
+          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-3">Narxoz College</p>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+            Вход в<br /><span className="text-white/20">систему</span>
+          </h1>
         </div>
 
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4 z-20 flex gap-2">
-        <button
-          onClick={() => changeLanguage('kz')}
-          className={`px-3 py-1 rounded-lg font-medium transition-all ${
-            language === 'kz'
-              ? 'bg-white text-red-600 shadow-md'
-              : 'bg-white/20 text-white hover:bg-white/30'
-          }`}
-        >
-          ҚАЗ
-        </button>
-        <button
-          onClick={() => changeLanguage('ru')}
-          className={`px-3 py-1 rounded-lg font-medium transition-all ${
-            language === 'ru'
-              ? 'bg-white text-red-600 shadow-md'
-              : 'bg-white/20 text-white hover:bg-white/30'
-          }`}
-        >
-          РУС
-        </button>
-      </div>
-      
-      <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🎓</div>
-          <h1 className="text-3xl font-bold btn-primary bg-clip-text text-transparent mb-2">
-            Narxoz College
-          </h1>
-          <p className="text-gray-600">{t.enterAccount}</p>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.email}</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 block mb-2">Email</label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white/90"
-              placeholder="your@email.com"
+              onChange={e => setEmail(e.target.value)}
               required
+              placeholder="your@email.com"
+              className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors"
             />
           </div>
-          
+
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-semibold text-gray-700">{t.password}</label>
-              <a href="/forgot-password" className="text-sm text-red-600 hover:text-blue-700 font-medium transition">
-                {t.forgotPassword}
-              </a>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Пароль</label>
+              <Link href="/forgot-password" className="text-[9px] font-bold uppercase tracking-widest text-gray-600 hover:text-red-500 transition-colors">
+                Забыли?
+              </Link>
             </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white/90"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPass ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors pr-12"
+              />
+              <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors">
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
+            <p className="text-red-500 text-[11px] font-bold uppercase tracking-widest">{error}</p>
           )}
 
-          <StarBorder
-            as="button"
+          <button
             type="submit"
             disabled={loading}
-            color="#000000"
-            speed="4s"
-            className="w-full"
-            style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-black italic uppercase tracking-tighter text-sm py-3.5 rounded-xl transition-colors"
           >
-            {loading ? `${t.loading}` : t.login}
-          </StarBorder>
+            {loading ? 'Входим...' : 'Войти'}
+          </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <a href="/register" className="text-gray-900 hover:text-gray-700 font-semibold transition">
-            {t.noAccount} {t.registerLink}
-          </a>
-        </div>
+        {/* Register */}
+        <p className="text-center text-[11px] text-gray-600 mt-6">
+          Нет аккаунта?{' '}
+          <Link href="/register" className="text-white font-bold hover:text-red-500 transition-colors">
+            Зарегистрироваться →
+          </Link>
+        </p>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-600 text-center mb-3 font-semibold">{t.testAccounts}</p>
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => handleTestLogin('admin@narxoz.kz', 'admin123')}
-              className="w-full px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-medium"
-            >
-              ⚙️ {t.admin}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTestLogin('teacher@narxoz.kz', 'teacher123')}
-              className="w-full px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-medium"
-            >
-              👨‍🏫 {t.teacher}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTestLogin('student@narxoz.kz', 'student123')}
-              className="w-full px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg transition-all text-sm font-medium"
-            >
-              👨‍🎓 {t.student}
-            </button>
+        {/* Test accounts */}
+        <div className="mt-8 pt-6 border-t border-white/5">
+          <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-gray-700 text-center mb-4">Тестовые аккаунты</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'Студент', e: 'student@narxoz.kz', p: 'student123' },
+              { label: 'Учитель', e: 'teacher@narxoz.kz', p: 'teacher123' },
+              { label: 'Админ', e: 'admin@narxoz.kz', p: 'admin123' },
+            ].map(a => (
+              <button key={a.label} onClick={() => fillTest(a.e, a.p)}
+                className="py-2 px-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-all">
+                {a.label}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
-      
-    <Footer />
-    </>
   );
 }

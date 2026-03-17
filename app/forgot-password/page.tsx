@@ -1,170 +1,73 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { requestPasswordReset } from '@/lib/auth';
-import dynamic from 'next/dynamic';
-import StarBorder from '@/components/StarBorder';
-import Footer from '@/components/Footer';
-import { translations, Language } from '@/lib/translations';
-
-const Galaxy = dynamic(() => import('@/components/Galaxy'), {
-  ssr: false,
-  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900" />
-});
+import Link from 'next/link';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [language, setLanguage] = useState<Language>('ru');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const savedLang = localStorage.getItem('language') as Language;
-    if (savedLang && translations[savedLang]) {
-      setLanguage(savedLang);
-    }
-  }, []);
-
-  const t = translations[language];
-
-  const changeLanguage = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
-  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
-
     try {
       const { error } = await requestPasswordReset(email);
-
       if (error) throw error;
-
-      const successMsg = language === 'kz' 
-        ? 'Құпия сөзді қалпына келтіру хаты жіберілді! Поштаңызды тексеріңіз.'
-        : language === 'ru'
-        ? 'Письмо для сброса пароля отправлено! Проверьте вашу почту.'
-        : 'Password reset email sent! Check your inbox.';
-      
-      setMessage(successMsg);
+      setMessage('Письмо отправлено! Проверьте вашу почту.');
       setEmail('');
-    } catch (error: any) {
-      setError(error.message || 'Ошибка при отправке письма');
+    } catch (err: any) {
+      setError(err.message || 'Ошибка при отправке письма');
     } finally {
       setLoading(false);
     }
   }
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
-    <>
-      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-        <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-          <Galaxy
-            mouseRepulsion
-            mouseInteraction
-            density={1}
-            glowIntensity={0.3}
-            saturation={0.2}
-            hueShift={200}
-            twinkleIntensity={0.3}
-            rotationSpeed={0.08}
-            repulsionStrength={2}
-            autoCenterRepulsion={0}
-            starSpeed={0.5}
-            speed={1}
-          />
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-red-600 flex items-center justify-center px-4">
+      <Link href="/login" className="fixed top-6 left-6 font-black italic text-sm tracking-tighter uppercase hover:text-red-600 transition-colors">
+        ← Назад
+      </Link>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <div className="mb-10">
+          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-3">Narxoz College</p>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+            Сброс<br /><span className="text-white/20">пароля</span>
+          </h1>
+          <p className="text-gray-600 text-sm mt-4">Введите email — пришлём ссылку для восстановления.</p>
         </div>
 
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4 z-20 flex gap-2">
-        <button
-          onClick={() => changeLanguage('kz')}
-          className={`px-3 py-1 rounded-lg font-medium transition-all ${
-            language === 'kz'
-              ? 'bg-white text-red-600 shadow-md'
-              : 'bg-white/20 text-white hover:bg-white/30'
-          }`}
-        >
-          ҚАЗ
-        </button>
-        <button
-          onClick={() => changeLanguage('ru')}
-          className={`px-3 py-1 rounded-lg font-medium transition-all ${
-            language === 'ru'
-              ? 'bg-white text-red-600 shadow-md'
-              : 'bg-white/20 text-white hover:bg-white/30'
-          }`}
-        >
-          РУС
-        </button>
-      </div>
-      
-      <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn z-10">
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🔐</div>
-          <h1 className="text-3xl font-bold btn-primary bg-clip-text text-transparent mb-2">
-            {t.forgotPasswordTitle}
-          </h1>
-          <p className="text-gray-600">{t.forgotPasswordDesc}</p>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">{t.email}</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white/90"
-              placeholder="your@email.com"
-              required
-            />
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 block mb-2">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="your@email.com"
+              className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors" />
           </div>
 
-          {message && (
-            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-              <p className="text-green-700 text-sm">{message}</p>
-            </div>
-          )}
+          {message && <p className="text-green-500 text-[11px] font-bold uppercase tracking-widest">{message}</p>}
+          {error && <p className="text-red-500 text-[11px] font-bold uppercase tracking-widest">{error}</p>}
 
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
-
-          <StarBorder
-            as="button"
-            type="submit"
-            disabled={loading}
-            color="#000000"
-            speed="4s"
-            className="w-full"
-            style={{ opacity: loading ? 0.5 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
-          >
-            {loading ? `${t.loading}` : t.sendEmail}
-          </StarBorder>
+          <button type="submit" disabled={loading}
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-black italic uppercase tracking-tighter text-sm py-3.5 rounded-xl transition-colors">
+            {loading ? 'Отправляем...' : 'Отправить письмо'}
+          </button>
         </form>
 
-        <div className="mt-6 text-center space-y-2">
-          <a href="/login" className="block text-gray-900 hover:text-gray-700 font-semibold transition">
-            {t.backToLogin}
-          </a>
-        </div>
-      </div>
+        <p className="text-center text-[11px] text-gray-600 mt-6">
+          <Link href="/login" className="text-white font-bold hover:text-red-500 transition-colors">← Вернуться к входу</Link>
+        </p>
+      </motion.div>
     </div>
-      
-    <Footer />
-    </>
   );
 }
