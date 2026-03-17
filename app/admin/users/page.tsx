@@ -1,349 +1,149 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import UniversalLayout from '@/components/UniversalLayout';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
+import { Search, Trash2, GraduationCap, BookOpen } from 'lucide-react';
 
-interface Student {
-  id: number;
-  name: string;
-  email: string;
-  group_name: string;
-  gpa: number;
-  created_at: string;
-}
-
-interface Teacher {
-  id: number;
-  name: string;
-  email: string;
-  subject: string;
-  created_at: string;
-}
-
-interface AuthUser {
-  id: string;
-  email: string;
-  created_at: string;
-  user_metadata: {
-    name?: string;
-    role?: string;
-    group?: string;
-  };
-}
+const stagger = {
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.04 } } },
+  item: { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } },
+};
 
 export default function AdminUsersPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'students' | 'teachers'>('all');
+  const [tab, setTab] = useState<'all' | 'students' | 'teachers'>('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     loadData();
-
-    // Real-time подписка на изменения
-    const studentsChannel = supabase
-      .channel('students-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'students' },
-        () => {
-          console.log('✅ Студенты обновлены через Realtime!');
-          loadData();
-        }
-      )
-      .subscribe();
-
-    const teachersChannel = supabase
-      .channel('teachers-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'teachers' },
-        () => {
-          console.log('✅ Учителя обновлены через Realtime!');
-          loadData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(studentsChannel);
-      supabase.removeChannel(teachersChannel);
-    };
+    const s = supabase.channel('users-students').on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, loadData).subscribe();
+    const t = supabase.channel('users-teachers').on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, loadData).subscribe();
+    return () => { supabase.removeChannel(s); supabase.removeChannel(t); };
   }, []);
 
   async function loadData() {
-    try {
-      // Загрузить студентов
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('students')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (studentsError) throw studentsError;
-      setStudents(studentsData || []);
-
-      // Загрузить учителей
-      const { data: teachersData, error: teachersError } = await supabase
-        .from('teachers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (teachersError) throw teachersError;
-      setTeachers(teachersData || []);
-
-      // Загрузить всех пользователей из auth (через admin API)
-      // Примечание: это работает только если у вас есть service_role ключ
-      // Альтернатива: использовать данные из students и teachers таблиц
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-      setLoading(false);
-    }
+    const [s, t] = await Promise.all([
+      supabase.from('students').select('*').order('created_at', { ascending: false }),
+      supabase.from('teachers').select('*').order('created_at', { ascending: false }),
+    ]);
+    setStudents(s.data || []);
+    setTeachers(t.data || []);
+    setLoading(false);
   }
 
-  async function deleteStudent(id: number, email: string) {
-    if (!confirm(`Удалить студента ${email}?`)) return;
-
-    try {
-      const { error } = await supabase
-        .from('students')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      alert('✅ Студент удалён!');
-      loadData();
-    } catch (error: any) {
-      alert('❌ Ошибка: ' + error.message);
-    }
-  }
-
-  async function deleteTeacher(id: number, email: string) {
-    if (!confirm(`Удалить учителя ${email}?`)) return;
-
-    try {
-      const { error } = await supabase
-        .from('teachers')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      alert('✅ Учитель удалён!');
-      loadData();
-    } catch (error: any) {
-      alert('❌ Ошибка: ' + error.message);
-    }
-  }
-
-  if (loading) {
-    return (
-      <UniversalLayout role="admin">
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-xl gradient-text font-bold">Загрузка...</p>
-        </div>
-      </UniversalLayout>
-    );
+  async function deleteUser(table: string, id: number) {
+    if (!confirm('Удалить пользователя?')) return;
+    await supabase.from(table).delete().eq('id', id);
+    loadData();
   }
 
   const allUsers = [
-    ...students.map(s => ({ ...s, role: 'student' as const })),
-    ...teachers.map(t => ({ ...t, role: 'teacher' as const }))
+    ...students.map(s => ({ ...s, role: 'student' })),
+    ...teachers.map(t => ({ ...t, role: 'teacher' })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const filteredUsers = activeTab === 'all' 
-    ? allUsers 
-    : activeTab === 'students' 
-    ? students.map(s => ({ ...s, role: 'student' as const }))
-    : teachers.map(t => ({ ...t, role: 'teacher' as const }));
+  const displayed = (tab === 'all' ? allUsers : tab === 'students' ? students.map(s => ({ ...s, role: 'student' })) : teachers.map(t => ({ ...t, role: 'teacher' })))
+    .filter(u => u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <UniversalLayout role="admin">
-      <div className="animate-fadeIn">
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-            👥 Управление пользователями
+    <DarkLayout role="admin">
+      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-8">
+
+        <motion.div variants={stagger.item} className="border-b border-white/5 pb-8">
+          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-2">Admin Portal</p>
+          <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
+            Пользователи <span className="text-white/20">/ контроль</span>
           </h1>
-          <p className="text-gray-600">Все зарегистрированные студенты и учителя</p>
-        </div>
+        </motion.div>
 
-        {/* Статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="stat-card bg-gradient-to-br from-blue-50 to-blue-100">
-            <div className="stat-icon bg-gradient-to-br from-blue-500 to-blue-600">
-              👥
+        {/* Stats */}
+        <motion.div variants={stagger.item} className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Всего', value: students.length + teachers.length },
+            { label: 'Студентов', value: students.length },
+            { label: 'Преподавателей', value: teachers.length },
+          ].map((s, i) => (
+            <div key={i} className="p-5 rounded-[20px] bg-white/[0.02] border border-white/5">
+              <div className="text-3xl font-black italic tracking-tighter">{s.value}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-1">{s.label}</div>
             </div>
-            <div className="stat-content">
-              <div className="stat-value">{students.length + teachers.length}</div>
-              <div className="stat-label">Всего пользователей</div>
-            </div>
+          ))}
+        </motion.div>
+
+        {/* Tabs + Search */}
+        <motion.div variants={stagger.item} className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-2">
+            {(['all', 'students', 'teachers'] as const).map(t => (
+              <button key={t} onClick={() => setTab(t)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black italic uppercase tracking-tighter transition-all ${
+                  tab === t ? 'bg-red-600 text-white' : 'bg-white/[0.03] border border-white/5 text-gray-500 hover:text-white'
+                }`}>
+                {t === 'all' ? 'Все' : t === 'students' ? 'Студенты' : 'Преподаватели'}
+              </button>
+            ))}
           </div>
-
-          <div className="stat-card bg-gradient-to-br from-green-50 to-green-100">
-            <div className="stat-icon bg-gradient-to-br from-green-500 to-green-600">
-              🎓
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{students.length}</div>
-              <div className="stat-label">Студентов</div>
-            </div>
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по имени или email..."
+              className="w-full bg-white/[0.03] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-colors" />
           </div>
+        </motion.div>
 
-          <div className="stat-card bg-gradient-to-br from-purple-50 to-purple-100">
-            <div className="stat-icon bg-gradient-to-br from-purple-500 to-purple-600">
-              👨‍🏫
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{teachers.length}</div>
-              <div className="stat-label">Учителей</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Табы */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'all'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            👥 Все ({allUsers.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('students')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'students'
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            🎓 Студенты ({students.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('teachers')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'teachers'
-                ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            👨‍🏫 Учителя ({teachers.length})
-          </button>
-        </div>
-
-        {/* Список пользователей */}
-        <div className="modern-card p-6">
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📭</div>
-              <p className="text-xl text-gray-600">Пользователи не найдены</p>
-            </div>
+        {/* Table */}
+        <motion.div variants={stagger.item} className="rounded-[24px] bg-white/[0.02] border border-white/5 overflow-hidden">
+          {loading ? (
+            <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" /></div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-4 px-4 font-bold text-gray-700">Роль</th>
-                    <th className="text-left py-4 px-4 font-bold text-gray-700">Имя</th>
-                    <th className="text-left py-4 px-4 font-bold text-gray-700">Email</th>
-                    <th className="text-left py-4 px-4 font-bold text-gray-700">Доп. инфо</th>
-                    <th className="text-left py-4 px-4 font-bold text-gray-700">Дата регистрации</th>
-                    <th className="text-left py-4 px-4 font-bold text-gray-700">Действия</th>
+                  <tr className="border-b border-white/5">
+                    {['Роль', 'Имя', 'Email', 'Доп. инфо', 'Дата', ''].map(h => (
+                      <th key={h} className="text-left px-5 py-4 font-bold uppercase tracking-widest text-gray-600 whitespace-nowrap">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr 
-                      key={`${user.role}-${user.id}`}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-4 px-4">
-                        {user.role === 'student' ? (
-                          <span className="badge-modern-success">
-                            🎓 Студент
-                          </span>
-                        ) : (
-                          <span className="badge-modern">
-                            👨‍🏫 Учитель
-                          </span>
-                        )}
+                  {displayed.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-12 text-gray-700">Пользователей не найдено</td></tr>
+                  ) : displayed.map((u, i) => (
+                    <motion.tr key={`${u.role}-${u.id}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                      className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                      <td className="px-5 py-3">
+                        <span className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border w-fit ${
+                          u.role === 'student' ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-blue-400 border-blue-400/20 bg-blue-400/5'
+                        }`}>
+                          {u.role === 'student' ? <GraduationCap size={9} /> : <BookOpen size={9} />}
+                          {u.role === 'student' ? 'Студент' : 'Преподаватель'}
+                        </span>
                       </td>
-                      <td className="py-4 px-4 font-semibold text-gray-900">
-                        {user.name}
+                      <td className="px-5 py-3 font-bold text-white/80">{u.name}</td>
+                      <td className="px-5 py-3 text-gray-600 font-mono text-[10px]">{u.email}</td>
+                      <td className="px-5 py-3 text-gray-600">
+                        {u.role === 'student'
+                          ? <span className="font-mono text-[10px]">{u.group_name} · GPA {u.gpa?.toFixed(1)}</span>
+                          : <span className="text-[10px]">{u.subject || '—'}</span>}
                       </td>
-                      <td className="py-4 px-4 text-gray-600">
-                        {user.email}
-                      </td>
-                      <td className="py-4 px-4">
-                        {user.role === 'student' ? (
-                          <div>
-                            <div className="text-sm">
-                              <span className="font-semibold">Группа:</span> {(user as Student).group_name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              <span className="font-semibold">GPA:</span> {(user as Student).gpa.toFixed(2)}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-sm">
-                            <span className="font-semibold">Предмет:</span> {(user as Teacher).subject || 'Не указан'}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-sm text-gray-600">
-                        {new Date(user.created_at).toLocaleDateString('ru-RU', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </td>
-                      <td className="py-4 px-4">
-                        <button
-                          onClick={() => {
-                            if (user.role === 'student') {
-                              deleteStudent(user.id, user.email);
-                            } else {
-                              deleteTeacher(user.id, user.email);
-                            }
-                          }}
-                          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all text-sm"
-                        >
-                          🗑️ Удалить
+                      <td className="px-5 py-3 text-gray-700 font-mono text-[10px]">{new Date(u.created_at).toLocaleDateString('ru-RU')}</td>
+                      <td className="px-5 py-3">
+                        <button onClick={() => deleteUser(u.role === 'student' ? 'students' : 'teachers', u.id)}
+                          className="p-1.5 rounded-lg border border-white/5 text-gray-600 hover:text-red-500 hover:border-red-600/20 transition-all">
+                          <Trash2 size={13} />
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Информация */}
-        <div className="modern-card p-6 mt-6">
-          <h3 className="text-xl font-bold gradient-text mb-4">ℹ️ Информация</h3>
-          <div className="space-y-2 text-gray-700">
-            <p>
-              • Здесь отображаются все зарегистрированные пользователи системы
-            </p>
-            <p>
-              • Студенты автоматически добавляются при регистрации с выбором группы
-            </p>
-            <p>
-              • Учителя добавляются администратором или при регистрации
-            </p>
-            <p className="text-sm text-gray-600 mt-4">
-              💡 Все изменения синхронизируются в реальном времени
-            </p>
-          </div>
-        </div>
-      </div>
-    </UniversalLayout>
+      </motion.div>
+    </DarkLayout>
   );
 }

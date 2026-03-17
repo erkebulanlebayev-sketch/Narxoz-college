@@ -1,362 +1,133 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import StudentLayout from '@/components/StudentLayout';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser } from '@/lib/auth';
 
-interface Grade {
-  id: number;
-  subject: string;
-  grade_type: string;
-  grade: number;
-  comment?: string;
-  created_at: string;
-  teachers?: { name: string };
+const stagger = {
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.07 } } },
+  item: { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } },
+};
+
+const TYPE_LABELS: Record<string, string> = { lecture: 'Лекция', srsp: 'СРСП', srs: 'СРС', midterm: 'Рубежный', final: 'Экзамен' };
+
+function gradeColor(g: number) {
+  if (g >= 90) return 'text-green-400';
+  if (g >= 75) return 'text-blue-400';
+  if (g >= 60) return 'text-yellow-400';
+  return 'text-red-400';
 }
 
-interface SubjectGrades {
-  subject: string;
-  teacher: string;
-  grades: {
-    lecture: number[];
-    srsp: number[];
-    srs: number[];
-    midterm: number[];
-    final: number[];
-  };
+function GradeBar({ value }: { value: number }) {
+  return (
+    <div className="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+      <motion.div className={`h-full rounded-full ${value >= 75 ? 'bg-green-500' : value >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+        initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 1, ease: 'easeOut' }} />
+    </div>
+  );
 }
 
-export default function GradesPage() {
-  const [grades, setGrades] = useState<Grade[]>([]);
+export default function StudentGradesPage() {
+  const [grades, setGrades] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [gpa, setGpa] = useState(0);
 
   useEffect(() => {
     loadGrades();
-
-    // Real-time подписка на оценки
-    const gradesChannel = supabase
-      .channel('student-grades-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'grades' },
-        (payload) => {
-          console.log('✅ Оценки обновлены через Realtime!', payload);
-          loadGrades();
-        }
-      )
-      .subscribe();
-
-    // Fallback: обновление каждые 10 секунд
-    const interval = setInterval(loadGrades, 10000);
-
-    return () => {
-      supabase.removeChannel(gradesChannel);
-      clearInterval(interval);
-    };
+    const ch = supabase.channel('student-grades').on('postgres_changes', { event: '*', schema: 'public', table: 'grades' }, loadGrades).subscribe();
+    return () => { supabase.removeChannel(ch); };
   }, []);
 
   async function loadGrades() {
-    try {
-      const user = await getCurrentUser();
-      
-      // Получить ID студента
-      const { data: studentData } = await supabase
-        .from('students')
-        .select('id')
-        .eq('email', user?.email)
-        .single();
-
-      if (!studentData) {
-        setLoading(false);
-        return;
-      }
-
-      // Загрузить оценки студента
-      const { data, error } = await supabase
-        .from('grades')
-        .select(`
-          *,
-          teachers (name)
-        `)
-        .eq('student_id', studentData.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setGrades(data || []);
-      calculateGPA(data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Ошибка загрузки оценок:', error);
-      setLoading(false);
-    }
+    const user = await getCurrentUser();
+    const { data: student } = await supabase.from('students').select('id').eq('email', user?.email).single();
+    if (!student) { setLoading(false); return; }
+    const { data } = await supabase.from('grades').select('*, teachers(name)').eq('student_id', student.id).order('created_at', { ascending: false });
+    setGrades(data || []);
+    setLoading(false);
   }
 
-  function calculateGPA(allGrades: Grade[]) {
-    if (allGrades.length === 0) {
-      setGpa(0);
-      return;
-    }
+  // Group by subject
+  const bySubject: Record<string, any[]> = {};
+  grades.forEach(g => { if (!bySubject[g.subject]) bySubject[g.subject] = []; bySubject[g.subject].push(g); });
 
-    const total = allGrades.reduce((sum, g) => sum + g.grade, 0);
-    setGpa(Number((total / allGrades.length).toFixed(2)));
-  }
-
-  function groupGradesBySubject(): SubjectGrades[] {
-    const grouped: { [key: string]: SubjectGrades } = {};
-
-    grades.forEach(grade => {
-      if (!grouped[grade.subject]) {
-        grouped[grade.subject] = {
-          subject: grade.subject,
-          teacher: grade.teachers?.name || 'Преподаватель',
-          grades: {
-            lecture: [],
-            srsp: [],
-            srs: [],
-            midterm: [],
-            final: []
-          }
-        };
-      }
-
-      const type = grade.grade_type as keyof SubjectGrades['grades'];
-      if (grouped[grade.subject].grades[type]) {
-        grouped[grade.subject].grades[type].push(grade.grade);
-      }
-    });
-
-    return Object.values(grouped);
-  }
-
-  function calculateSubjectAverage(subjectGrades: SubjectGrades['grades']): string {
-    const allGrades = [
-      ...subjectGrades.lecture,
-      ...subjectGrades.srsp,
-      ...subjectGrades.srs,
-      ...subjectGrades.midterm,
-      ...subjectGrades.final
-    ];
-
-    if (allGrades.length === 0) return '0.0';
-    return (allGrades.reduce((a, b) => a + b, 0) / allGrades.length).toFixed(1);
-  }
-
-  function getGradeColor(grade: number): string {
-    if (grade >= 90) return 'text-green-600';
-    if (grade >= 75) return 'text-blue-600';
-    if (grade >= 60) return 'text-yellow-600';
-    return 'text-red-600';
-  }
-
-  if (loading) {
-    return (
-      <StudentLayout>
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-xl gradient-text font-bold">Загрузка оценок...</p>
-        </div>
-      </StudentLayout>
-    );
-  }
-
-  const subjectGrades = groupGradesBySubject();
+  const gpa = grades.length > 0 ? (grades.reduce((s, g) => s + g.grade, 0) / grades.length).toFixed(1) : '0.0';
 
   return (
-    <StudentLayout>
-      <div className="space-y-6 animate-fadeIn">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-2">
-            📊 Мои оценки
+    <DarkLayout role="student">
+      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-8">
+
+        <motion.div variants={stagger.item} className="border-b border-white/5 pb-8">
+          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-2">Student Portal</p>
+          <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
+            Мои <span className="text-white/20">оценки</span>
           </h1>
-          <p className="text-gray-600">Успеваемость по всем предметам</p>
-        </div>
+        </motion.div>
 
-        {/* Общий средний балл (GPA) */}
-        <div className="ferris-card p-6 text-center shadow-colorful">
-          <div className="text-6xl mb-2">🎯</div>
-          <h2 className="text-2xl font-bold mb-2">Общий средний балл (GPA)</h2>
-          <div className={`text-5xl font-bold ${getGradeColor(gpa)}`}>
-            {gpa}
-          </div>
-          <div className="mt-4 flex justify-center gap-4 text-sm flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>90-100: Отлично</span>
+        {/* GPA summary */}
+        <motion.div variants={stagger.item} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Средний балл', value: gpa },
+            { label: 'Всего оценок', value: grades.length },
+            { label: 'Отлично (90+)', value: grades.filter(g => g.grade >= 90).length },
+            { label: 'Предметов', value: Object.keys(bySubject).length },
+          ].map((s, i) => (
+            <div key={i} className="p-5 rounded-[20px] bg-white/[0.02] border border-white/5">
+              <div className="text-3xl font-black italic tracking-tighter text-white">{s.value}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-1">{s.label}</div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-              <span>75-89: Хорошо</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <span>60-74: Удовл.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span>&lt;60: Неуд.</span>
-            </div>
-          </div>
-        </div>
+          ))}
+        </motion.div>
 
-        {/* Оценки по предметам */}
-        {subjectGrades.length === 0 ? (
-          <div className="ferris-card p-12 text-center">
-            <div className="text-6xl mb-4">📚</div>
-            <p className="text-xl text-gray-600">Оценки пока не выставлены</p>
-            <p className="text-gray-500 mt-2">Ваши оценки появятся здесь, когда преподаватели их выставят</p>
-          </div>
+        {loading ? (
+          <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" /></div>
+        ) : Object.keys(bySubject).length === 0 ? (
+          <div className="text-center py-20"><p className="text-gray-700 font-bold uppercase tracking-widest text-sm">Оценок пока нет</p></div>
         ) : (
-          <div className="grid gap-6">
-            {subjectGrades.map((subject, idx) => {
-              const avg = calculateSubjectAverage(subject.grades);
+          <motion.div variants={stagger.container} className="space-y-4">
+            {Object.entries(bySubject).map(([subject, items]) => {
+              const avg = items.reduce((s, g) => s + g.grade, 0) / items.length;
+              const teacher = items[0]?.teachers?.name;
               return (
-                <div 
-                  key={idx} 
-                  className="ferris-card p-6 hover-lift"
-                  style={{ animationDelay: `${idx * 0.1}s` }}
-                >
-                  <div className="flex justify-between items-start mb-4">
+                <motion.div key={subject} variants={stagger.item}
+                  className="rounded-[24px] bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all p-6">
+                  <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-bold text-black">{subject.subject}</h3>
-                      <p className="text-gray-600 text-sm">Преподаватель: {subject.teacher}</p>
+                      <h3 className="text-base font-black italic uppercase tracking-tighter text-white">{subject}</h3>
+                      {teacher && <p className="text-[10px] text-gray-600 mt-0.5">{teacher}</p>}
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-500">Средний балл</div>
-                      <div className={`text-3xl font-bold ${getGradeColor(parseFloat(avg))}`}>
-                        {avg}
-                      </div>
+                      <span className={`text-2xl font-black italic ${gradeColor(avg)}`}>{avg.toFixed(1)}</span>
+                      <p className="text-[9px] text-gray-700 font-mono">avg</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {/* Лекции */}
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 mb-2 font-bold">📚 Лекции</div>
-                      <div className="flex flex-wrap gap-2">
-                        {subject.grades.lecture.length > 0 ? (
-                          subject.grades.lecture.map((grade, i) => (
-                            <span key={i} className={`text-sm font-semibold ${getGradeColor(grade)}`}>
-                              {grade}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </div>
-                    </div>
+                  <GradeBar value={avg} />
 
-                    {/* СРСП */}
-                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 mb-2 font-bold">✍️ СРСП</div>
-                      <div className="flex flex-wrap gap-2">
-                        {subject.grades.srsp.length > 0 ? (
-                          subject.grades.srsp.map((grade, i) => (
-                            <span key={i} className={`text-sm font-semibold ${getGradeColor(grade)}`}>
-                              {grade}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* СРС */}
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 mb-2 font-bold">📝 СРС</div>
-                      <div className="flex flex-wrap gap-2">
-                        {subject.grades.srs.length > 0 ? (
-                          subject.grades.srs.map((grade, i) => (
-                            <span key={i} className={`text-sm font-semibold ${getGradeColor(grade)}`}>
-                              {grade}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Рубежный */}
-                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 mb-2 font-bold">📊 Рубежный</div>
-                      <div className="flex flex-wrap gap-2">
-                        {subject.grades.midterm.length > 0 ? (
-                          subject.grades.midterm.map((grade, i) => (
-                            <span key={i} className={`text-sm font-semibold ${getGradeColor(grade)}`}>
-                              {grade}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Экзамен */}
-                    <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 mb-2 font-bold">🎓 Экзамен</div>
-                      <div className="flex flex-wrap gap-2">
-                        {subject.grades.final.length > 0 ? (
-                          subject.grades.final.map((grade, i) => (
-                            <span key={i} className={`text-sm font-semibold ${getGradeColor(grade)}`}>
-                              {grade}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </div>
-                    </div>
+                  {/* Grades by type */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4">
+                    {Object.entries(TYPE_LABELS).map(([type, label]) => {
+                      const typeGrades = items.filter(g => g.grade_type === type);
+                      return (
+                        <div key={type} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-gray-600 mb-2">{label}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {typeGrades.length > 0 ? typeGrades.map((g, i) => (
+                              <span key={i} className={`text-sm font-black italic ${gradeColor(g.grade)}`}>{g.grade}</span>
+                            )) : <span className="text-[10px] text-gray-700">—</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  {/* Прогресс бар */}
-                  <div className="mt-4">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-green-400 to-blue-500 transition-all duration-500"
-                        style={{ width: `${parseFloat(avg)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
-        {/* Статистика */}
-        {grades.length > 0 && (
-          <div className="ferris-card p-6">
-            <h2 className="text-2xl font-bold gradient-text mb-4">📈 Статистика</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
-                <div className="text-3xl font-bold text-purple-600">{grades.length}</div>
-                <div className="text-sm text-gray-600">Всего оценок</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-                <div className="text-3xl font-bold text-green-600">
-                  {grades.filter(g => g.grade >= 90).length}
-                </div>
-                <div className="text-sm text-gray-600">Отлично (90+)</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
-                <div className="text-3xl font-bold text-blue-600">
-                  {grades.filter(g => g.grade >= 75 && g.grade < 90).length}
-                </div>
-                <div className="text-sm text-gray-600">Хорошо (75-89)</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl">
-                <div className="text-3xl font-bold text-yellow-600">{subjectGrades.length}</div>
-                <div className="text-sm text-gray-600">Предметов</div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </StudentLayout>
+      </motion.div>
+    </DarkLayout>
   );
 }

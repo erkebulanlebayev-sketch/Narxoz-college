@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import StudentLayout from '@/components/StudentLayout';
-import StarBorder from '@/components/StarBorder';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
+import { Library, Search, BookOpen } from 'lucide-react';
 
 interface Book {
   id: number;
@@ -24,206 +25,139 @@ export default function StudentLibraryPage() {
 
   useEffect(() => {
     loadBooks();
-
-    // Real-time подписка на книги
-    const booksChannel = supabase
+    const channel = supabase
       .channel('student-library-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'library_books' },
-        () => {
-          console.log('✅ Библиотека обновлена через Realtime!');
-          loadBooks();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'library_books' }, loadBooks)
       .subscribe();
-
-    // Fallback: обновление каждые 10 секунд
     const interval = setInterval(loadBooks, 10000);
-
-    return () => {
-      supabase.removeChannel(booksChannel);
-      clearInterval(interval);
-    };
+    return () => { supabase.removeChannel(channel); clearInterval(interval); };
   }, []);
 
   async function loadBooks() {
     try {
-      const { data, error } = await supabase
-        .from('library_books')
-        .select('*')
-        .order('title');
-
-      if (error) throw error;
+      const { data } = await supabase.from('library_books').select('*').order('title');
       setBooks(data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Ошибка загрузки книг:', error);
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }
 
   const categories = ['Все', ...Array.from(new Set(books.map(b => b.category)))];
-
-  const filteredBooks = books.filter(book => {
-    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         book.author.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'Все' || book.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+  const filtered = books.filter(b => {
+    const matchSearch = b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        b.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCat = selectedCategory === 'Все' || b.category === selectedCategory;
+    return matchSearch && matchCat;
   });
 
-  const getCategoryIcon = (category: string) => {
-    const icons: { [key: string]: string } = {
-      'Программирование': '💻',
-      'Математика': '📐',
-      'Физика': '⚡',
-      'Языки': '🌐',
-      'Экономика': '💰',
-      'История': '📜',
-      'Литература': '📖'
-    };
-    return icons[category] || '📚';
-  };
-
-  if (loading) {
-    return (
-      <StudentLayout>
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-xl gradient-text font-bold">Загрузка библиотеки...</p>
-        </div>
-      </StudentLayout>
-    );
-  }
-
   return (
-    <StudentLayout>
-      <div className="mb-8 animate-fadeIn text-center">
-        <h1 className="text-5xl font-bold mb-3 gradient-text">
-          📚 Электронная библиотека
-        </h1>
-        <p className="text-gray-600 text-xl">Доступ к учебным материалам и книгам</p>
-      </div>
+    <DarkLayout role="student">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter">
+            Электронная <span className="text-red-600">Библиотека</span>
+          </h1>
+          <p className="text-gray-500 text-sm mt-1 font-mono">{books.length} книг в каталоге</p>
+        </div>
 
-      {/* Поиск и фильтры */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <input
-          type="text"
-          placeholder="🔍 Поиск книг по названию или автору..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-6 py-4 ferris-card rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-        />
-      </div>
-
-      {/* Категории */}
-      {categories.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto mb-6 pb-2">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
-                selectedCategory === cat
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                  : 'ferris-card text-gray-700 hover:shadow-md hover:scale-105'
-              }`}
-            >
-              {cat}
-            </button>
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Всего книг', value: books.length, color: 'text-white' },
+            { label: 'Доступно', value: books.filter(b => b.available).length, color: 'text-green-500' },
+            { label: 'Занято', value: books.filter(b => !b.available).length, color: 'text-red-500' },
+            { label: 'Категорий', value: categories.length - 1, color: 'text-gray-400' },
+          ].map((s, i) => (
+            <div key={i} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+              <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+              <p className="text-[10px] font-mono text-gray-600 mt-1 uppercase tracking-widest">{s.label}</p>
+            </div>
           ))}
         </div>
-      )}
 
-      {/* Список книг */}
-      {filteredBooks.length === 0 ? (
-        <div className="ferris-card p-12 text-center">
-          <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-2xl font-bold mb-2">
-            {searchQuery || selectedCategory !== 'Все' ? 'Книги не найдены' : 'Библиотека пуста'}
-          </h3>
-          <p className="text-gray-600">
-            {searchQuery || selectedCategory !== 'Все' 
-              ? 'Попробуйте изменить параметры поиска' 
-              : 'Книги появятся здесь, когда администратор их добавит'}
-          </p>
+        {/* Search */}
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
+          <input type="text" placeholder="Поиск по названию или автору..."
+            value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+          />
         </div>
-      ) : (
-        <>
-          {/* Статистика */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="ferris-card p-4 text-center">
-              <div className="text-3xl font-bold text-purple-600">{books.length}</div>
-              <div className="text-sm text-gray-600">Всего книг</div>
-            </div>
-            <div className="ferris-card p-4 text-center">
-              <div className="text-3xl font-bold text-green-600">
-                {books.filter(b => b.available).length}
-              </div>
-              <div className="text-sm text-gray-600">Доступно</div>
-            </div>
-            <div className="ferris-card p-4 text-center">
-              <div className="text-3xl font-bold text-red-600">
-                {books.filter(b => !b.available).length}
-              </div>
-              <div className="text-sm text-gray-600">Занято</div>
-            </div>
-            <div className="ferris-card p-4 text-center">
-              <div className="text-3xl font-bold text-blue-600">{categories.length - 1}</div>
-              <div className="text-sm text-gray-600">Категорий</div>
-            </div>
-          </div>
 
-          {/* Сетка книг */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBooks.map((book, index) => (
-              <div
-                key={book.id}
-                className="ferris-card p-6 hover-lift animate-fadeIn"
-                style={{ animationDelay: `${index * 0.05}s` }}
+        {/* Category tabs */}
+        {categories.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {categories.map(cat => (
+              <button key={cat} onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                  selectedCategory === cat
+                    ? 'bg-red-600/10 border-red-600/30 text-red-500'
+                    : 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                }`}
               >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="text-6xl">{getCategoryIcon(book.category)}</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-xl text-gray-800 mb-2">{book.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">✍️ {book.author}</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-medium">
-                        {book.category}
-                      </span>
-                      {book.pages && (
-                        <span className="text-xs text-gray-500">📄 {book.pages} стр.</span>
-                      )}
-                      {book.isbn && (
-                        <span className="text-xs text-gray-500">ISBN: {book.isbn}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <span className={`text-sm font-bold flex items-center gap-2 ${
-                    book.available ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {book.available ? '✅ Доступна' : '❌ Занята'}
-                  </span>
-                  <StarBorder
-                    as="button"
-                    disabled={!book.available}
-                    color={book.available ? '#9333EA' : '#9ca3af'}
-                    speed="5s"
-                    style={{ 
-                      opacity: book.available ? 1 : 0.5,
-                      cursor: book.available ? 'pointer' : 'not-allowed'
-                    }}
-                  >
-                    {book.available ? '📖 Читать' : '🔒 Недоступно'}
-                  </StarBorder>
-                </div>
-              </div>
+                {cat}
+              </button>
             ))}
           </div>
-        </>
-      )}
-    </StudentLayout>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20 text-gray-600">
+            <Library size={40} className="mx-auto mb-3 opacity-30" />
+            <p className="font-bold uppercase text-sm tracking-widest">
+              {searchQuery || selectedCategory !== 'Все' ? 'Книги не найдены' : 'Библиотека пуста'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((book, i) => (
+              <motion.div key={book.id}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all flex flex-col"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center flex-shrink-0">
+                    <BookOpen size={16} className="text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black italic uppercase text-sm tracking-tight leading-tight mb-1">{book.title}</h3>
+                    <p className="text-gray-500 text-xs font-mono truncate">{book.author}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    {book.category}
+                  </span>
+                  {book.pages && (
+                    <span className="text-[10px] font-mono text-gray-600">{book.pages} стр.</span>
+                  )}
+                </div>
+
+                <div className="mt-auto flex items-center justify-between pt-3 border-t border-white/5">
+                  <span className={`text-[11px] font-black uppercase tracking-widest ${book.available ? 'text-green-500' : 'text-red-500'}`}>
+                    {book.available ? '● Доступна' : '○ Занята'}
+                  </span>
+                  <button
+                    disabled={!book.available}
+                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                      book.available
+                        ? 'border-red-600/30 text-red-500 hover:bg-red-600/10'
+                        : 'border-white/5 text-gray-700 cursor-not-allowed'
+                    }`}
+                  >
+                    {book.available ? 'Читать' : 'Занята'}
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+    </DarkLayout>
   );
 }

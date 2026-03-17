@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import UniversalLayout from '@/components/UniversalLayout';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
+import { Calendar, Plus, Pencil, Trash2, X, MapPin, Users, Clock } from 'lucide-react';
 
 interface Schedule {
   id: number;
-  day: number; // Изменено с day_of_week на day
+  day: number;
   start_time: string;
   end_time: string;
   subject: string;
@@ -15,10 +17,14 @@ interface Schedule {
   room: string;
 }
 
-interface Teacher {
-  id: number;
-  name: string;
-}
+interface Teacher { id: number; name: string; }
+
+const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+
+const emptyForm = {
+  day_of_week: 0, start_time: '09:00', end_time: '10:30',
+  subject: '', teacher_id: '', group_name: '', room: ''
+};
 
 export default function AdminSchedulePage() {
   const [schedule, setSchedule] = useState<Schedule[]>([]);
@@ -26,399 +32,250 @@ export default function AdminSchedulePage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Schedule | null>(null);
-  const [formData, setFormData] = useState({
-    day_of_week: 0,
-    start_time: '09:00',
-    end_time: '10:30',
-    subject: '',
-    teacher_id: '',
-    group_name: '',
-    room: ''
-  });
-
-  const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+  const [activeDay, setActiveDay] = useState(0);
+  const [formData, setFormData] = useState(emptyForm);
 
   useEffect(() => {
     loadData();
-
-    // Real-time подписка
     const channel = supabase
       .channel('schedule-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'schedule' },
-        () => {
-          console.log('✅ Расписание обновлено через Realtime!');
-          loadData();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'schedule' }, loadData)
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   async function loadData() {
     try {
-      // Загрузка расписания
-      const { data: scheduleData, error: scheduleError } = await supabase
-        .from('schedule')
-        .select('*')
-        .order('day') // Изменено с day_of_week на day
-        .order('start_time');
-
-      console.log('📥 Загружено занятий:', scheduleData?.length || 0); // Отладка
-      
-      if (scheduleError) {
-        console.error('❌ Ошибка загрузки расписания:', scheduleError);
-        throw scheduleError;
-      }
+      const { data: scheduleData } = await supabase
+        .from('schedule').select('*').order('day').order('start_time');
       setSchedule(scheduleData || []);
-
-      // Загрузка учителей
-      const { data: teachersData, error: teachersError } = await supabase
-        .from('teachers')
-        .select('id, name')
-        .order('name');
-
-      if (teachersError) throw teachersError;
+      const { data: teachersData } = await supabase
+        .from('teachers').select('id, name').order('name');
       setTeachers(teachersData || []);
-    } catch (error) {
-      console.error('Ошибка загрузки:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     try {
       const data = {
         day: Number(formData.day_of_week),
-        start_time: formData.start_time,
-        end_time: formData.end_time,
+        start_time: formData.start_time, end_time: formData.end_time,
         subject: formData.subject,
         teacher_id: formData.teacher_id ? Number(formData.teacher_id) : null,
-        group_name: formData.group_name,
-        room: formData.room
+        group_name: formData.group_name, room: formData.room
       };
-
-      console.log('📤 Отправляем данные:', data);
-
       if (editingItem) {
-        const { data: result, error } = await supabase
-          .from('schedule')
-          .update(data)
-          .eq('id', editingItem.id)
-          .select();
-
-        console.log('📥 Результат обновления:', result, error);
+        const { error } = await supabase.from('schedule').update(data).eq('id', editingItem.id);
         if (error) throw error;
-        alert('✅ Занятие обновлено!');
       } else {
-        const { data: result, error } = await supabase
-          .from('schedule')
-          .insert([data])
-          .select();
-
-        console.log('📥 Результат добавления:', result, error);
+        const { error } = await supabase.from('schedule').insert([data]);
         if (error) throw error;
-        
-        if (!result || result.length === 0) {
-          throw new Error('Данные не были добавлены в базу');
-        }
-        
-        alert('✅ Занятие добавлено!');
       }
-
-      setFormData({
-        day_of_week: 0,
-        start_time: '09:00',
-        end_time: '10:30',
-        subject: '',
-        teacher_id: '',
-        group_name: '',
-        room: ''
-      });
+      setFormData(emptyForm);
       setShowModal(false);
       setEditingItem(null);
-      loadData(); // Перезагрузить данные
       loadData();
-    } catch (error: any) {
-      alert('❌ Ошибка: ' + error.message);
-    }
+    } catch (e: any) { alert('Ошибка: ' + e.message); }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm('Удалить это занятие?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('schedule')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      alert('✅ Занятие удалено!');
-      loadData();
-    } catch (error: any) {
-      alert('❌ Ошибка: ' + error.message);
-    }
+    if (!confirm('Удалить занятие?')) return;
+    const { error } = await supabase.from('schedule').delete().eq('id', id);
+    if (error) alert('Ошибка: ' + error.message);
+    else loadData();
   }
 
   function handleEdit(item: Schedule) {
     setEditingItem(item);
     setFormData({
-      day_of_week: item.day, // Изменено с item.day_of_week на item.day
-      start_time: item.start_time,
-      end_time: item.end_time,
-      subject: item.subject,
-      teacher_id: item.teacher_id?.toString() || '',
-      group_name: item.group_name,
-      room: item.room
+      day_of_week: item.day, start_time: item.start_time, end_time: item.end_time,
+      subject: item.subject, teacher_id: item.teacher_id?.toString() || '',
+      group_name: item.group_name, room: item.room
     });
     setShowModal(true);
   }
 
-  if (loading) {
-    return (
-      <UniversalLayout role="admin">
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-xl gradient-text font-bold">Загрузка...</p>
-        </div>
-      </UniversalLayout>
-    );
-  }
+  const daySchedule = schedule.filter(s => s.day === activeDay);
+  const activeDays = days.map((_, i) => schedule.some(s => s.day === i));
 
   return (
-    <UniversalLayout role="admin">
-      <div className="animate-fadeIn">
-        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <DarkLayout role="admin">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-              🗓️ Управление расписанием
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter">
+              Управление <span className="text-red-600">Расписанием</span>
             </h1>
-            <p className="text-gray-600">Создание и редактирование расписания занятий</p>
+            <p className="text-gray-500 text-sm mt-1 font-mono">{schedule.length} занятий всего</p>
           </div>
           <button
-            onClick={() => {
-              setEditingItem(null);
-              setFormData({
-                day_of_week: 0,
-                start_time: '09:00',
-                end_time: '10:30',
-                subject: '',
-                teacher_id: '',
-                group_name: '',
-                room: ''
-              });
-              setShowModal(true);
-            }}
-            className="btn-primary"
+            onClick={() => { setEditingItem(null); setFormData(emptyForm); setShowModal(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
           >
-            ➕ Добавить занятие
+            <Plus size={14} /> Добавить
           </button>
         </div>
 
-        {/* Расписание по дням */}
-        <div className="space-y-6">
-          {days.map((day, dayIndex) => {
-            const daySchedule = schedule.filter(s => s.day === dayIndex); // Изменено с day_of_week на day
-            
-            if (daySchedule.length === 0) return null;
-
-            return (
-              <div key={dayIndex} className="ferris-card p-6 shadow-colorful">
-                <h2 className="text-2xl font-bold gradient-text mb-4">{day}</h2>
-                <div className="space-y-3">
-                  {daySchedule.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="bg-white p-4 rounded-xl border-2 border-gray-100 hover:border-purple-300 transition-all"
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-lg font-bold text-purple-600">
-                              {item.start_time} - {item.end_time}
-                            </span>
-                            <span className="badge">{item.group_name}</span>
-                            <span className="badge badge-secondary">🚪 {item.room}</span>
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-800 mb-1">
-                            {item.subject}
-                          </h3>
-                          {item.teacher_id && (
-                            <p className="text-gray-600">
-                              👤 {teachers.find(t => t.id === item.teacher_id)?.name || 'Преподаватель'}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-all"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="px-3 py-2 bg-red-100 text-red-600 rounded-lg font-bold hover:bg-red-200 transition-all"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        {/* Day tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {days.map((day, i) => (
+            <button key={i} onClick={() => setActiveDay(i)}
+              className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                activeDay === i
+                  ? 'bg-red-600/10 border-red-600/30 text-red-500'
+                  : activeDays[i]
+                  ? 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                  : 'border-white/5 text-gray-700'
+              }`}
+            >
+              {day.slice(0, 3)}
+              {activeDays[i] && <span className="ml-1 text-xs opacity-60">({schedule.filter(s => s.day === i).length})</span>}
+            </button>
+          ))}
         </div>
 
-        {schedule.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📅</div>
-            <p className="text-gray-600 text-lg">Расписание пусто. Добавьте первое занятие!</p>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : daySchedule.length === 0 ? (
+          <div className="text-center py-20 text-gray-600">
+            <Calendar size={40} className="mx-auto mb-3 opacity-30" />
+            <p className="font-bold uppercase text-sm tracking-widest">Нет занятий в этот день</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {daySchedule.map((item, i) => (
+              <motion.div key={item.id}
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06 }}
+                className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="flex items-center gap-1 font-mono text-sm font-bold text-white">
+                        <Clock size={12} className="text-red-500" />
+                        {item.start_time} — {item.end_time}
+                      </span>
+                    </div>
+                    <h3 className="font-black italic uppercase text-base tracking-tight mb-2">{item.subject}</h3>
+                    <div className="flex items-center gap-4 text-xs text-gray-500 font-mono">
+                      <span className="flex items-center gap-1"><Users size={11} />{item.group_name}</span>
+                      <span className="flex items-center gap-1"><MapPin size={11} />Ауд. {item.room}</span>
+                      {item.teacher_id && (
+                        <span>{teachers.find(t => t.id === item.teacher_id)?.name || '—'}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={() => handleEdit(item)}
+                      className="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all">
+                      <Pencil size={13} />
+                    </button>
+                    <button onClick={() => handleDelete(item.id)}
+                      className="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-red-500 hover:border-red-600/30 transition-all">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
+      </motion.div>
 
-        {/* Модальное окно */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold gradient-text mb-4">
-                {editingItem ? '✏️ Редактировать занятие' : '➕ Новое занятие'}
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-black italic uppercase text-lg tracking-tight">
+                {editingItem ? 'Редактировать' : 'Новое'} <span className="text-red-600">Занятие</span>
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      День недели
-                    </label>
-                    <select
-                      value={formData.day_of_week}
-                      onChange={(e) => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                      required
-                    >
-                      {days.map((day, index) => (
-                        <option key={index} value={index}>{day}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Предмет
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Время начала
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.start_time}
-                      onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Время окончания
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.end_time}
-                      onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Группа
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.group_name}
-                      onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
-                      placeholder="ИС-21-1"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Аудитория
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.room}
-                      onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-                      placeholder="301"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                      required
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Преподаватель (опционально)
-                    </label>
-                    <select
-                      value={formData.teacher_id}
-                      onChange={(e) => setFormData({ ...formData, teacher_id: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                    >
-                      <option value="">Не выбран</option>
-                      {teachers.map(teacher => (
-                        <option key={teacher.id} value={teacher.id}>
-                          {teacher.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      setEditingItem(null);
-                    }}
-                    className="flex-1 btn-secondary"
-                  >
-                    ❌ Отмена
-                  </button>
-                  <button type="submit" className="flex-1 btn-primary">
-                    {editingItem ? '💾 Сохранить' : '➕ Добавить'}
-                  </button>
-                </div>
-              </form>
+              <button onClick={() => { setShowModal(false); setEditingItem(null); }}
+                className="text-gray-500 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
             </div>
-          </div>
-        )}
-      </div>
-    </UniversalLayout>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">День недели</label>
+                  <select value={formData.day_of_week}
+                    onChange={e => setFormData(f => ({ ...f, day_of_week: Number(e.target.value) }))}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-red-600/50"
+                  >
+                    {days.map((day, i) => <option key={i} value={i}>{day}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Начало</label>
+                  <input type="time" value={formData.start_time}
+                    onChange={e => setFormData(f => ({ ...f, start_time: e.target.value }))} required
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-red-600/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Конец</label>
+                  <input type="time" value={formData.end_time}
+                    onChange={e => setFormData(f => ({ ...f, end_time: e.target.value }))} required
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-red-600/50"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Предмет</label>
+                  <input type="text" value={formData.subject}
+                    onChange={e => setFormData(f => ({ ...f, subject: e.target.value }))} required
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Группа</label>
+                  <input type="text" value={formData.group_name} placeholder="ИС-21-1"
+                    onChange={e => setFormData(f => ({ ...f, group_name: e.target.value }))} required
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Аудитория</label>
+                  <input type="text" value={formData.room} placeholder="301"
+                    onChange={e => setFormData(f => ({ ...f, room: e.target.value }))} required
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">Преподаватель (опционально)</label>
+                  <select value={formData.teacher_id}
+                    onChange={e => setFormData(f => ({ ...f, teacher_id: e.target.value }))}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-red-600/50"
+                  >
+                    <option value="">Не выбран</option>
+                    {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => { setShowModal(false); setEditingItem(null); }}
+                  className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all">
+                  Отмена
+                </button>
+                <button type="submit"
+                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[11px] font-black uppercase tracking-widest transition-all">
+                  {editingItem ? 'Сохранить' : 'Добавить'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </DarkLayout>
   );
 }

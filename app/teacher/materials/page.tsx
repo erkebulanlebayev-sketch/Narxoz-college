@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import UniversalLayout from '@/components/UniversalLayout';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser } from '@/lib/auth';
+import { Upload, FileText, Download, Trash2, Plus, X } from 'lucide-react';
 
 interface Material {
   id: string;
@@ -17,8 +19,11 @@ interface Material {
   file_type: string;
   created_at: string;
   teacher_id: number;
-  teachers?: { name: string };
 }
+
+const typeLabels: Record<string, string> = {
+  lecture: 'Лекция', assignment: 'Задание', test: 'Тест', exam: 'Экзамен'
+};
 
 export default function TeacherMaterialsPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -26,435 +31,272 @@ export default function TeacherMaterialsPage() {
   const [showModal, setShowModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [dragOver, setDragOver] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    subject: '',
-    material_type: 'lecture',
-    file: null as File | null
+    title: '', description: '', subject: '', material_type: 'lecture', file: null as File | null
   });
 
   useEffect(() => {
     loadMaterials();
-
-    // Real-time подписка на материалы
-    const materialsChannel = supabase
+    const channel = supabase
       .channel('teacher-materials-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'materials' },
-        () => {
-          console.log('✅ Материалы обновлены через Realtime!');
-          loadMaterials();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, loadMaterials)
       .subscribe();
-
-    // Fallback: обновление каждые 10 секунд
     const interval = setInterval(loadMaterials, 10000);
-
-    return () => {
-      supabase.removeChannel(materialsChannel);
-      clearInterval(interval);
-    };
+    return () => { supabase.removeChannel(channel); clearInterval(interval); };
   }, []);
 
   async function loadMaterials() {
     try {
       const user = await getCurrentUser();
-      
-      // Получить ID учителя
       const { data: teacherData } = await supabase
-        .from('teachers')
-        .select('id')
-        .eq('email', user?.email)
-        .single();
-
-      if (!teacherData) {
-        setLoading(false);
-        return;
-      }
-
-      // Загрузить материалы учителя
-      const { data, error } = await supabase
-        .from('materials')
-        .select(`
-          *,
-          teachers (name)
-        `)
+        .from('teachers').select('id').eq('email', user?.email).single();
+      if (!teacherData) { setLoading(false); return; }
+      const { data } = await supabase
+        .from('materials').select('*')
         .eq('teacher_id', teacherData.id)
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
       setMaterials(data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Ошибка загрузки материалов:', error);
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!formData.file) {
-      alert('Выберите файл для загрузки');
-      return;
-    }
-
+    if (!formData.file) { alert('Выберите файл'); return; }
     setUploading(true);
-
     try {
       const user = await getCurrentUser();
-      
-      // Получить ID учителя
       const { data: teacherData } = await supabase
-        .from('teachers')
-        .select('id')
-        .eq('email', user?.email)
-        .single();
+        .from('teachers').select('id').eq('email', user?.email).single();
+      if (!teacherData) { alert('Учитель не найден'); return; }
 
-      if (!teacherData) {
-        alert('Ошибка: учитель не найден');
-        return;
-      }
-
-      // Генерируем уникальное имя файла
       const fileExt = formData.file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `teacher-materials/${teacherData.id}/${fileName}`;
 
-      // Загружаем файл в Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('materials')
-        .upload(filePath, formData.file);
-
+        .from('materials').upload(filePath, formData.file);
       if (uploadError) throw uploadError;
 
-      // Сохраняем метаданные в базу данных
-      const { error: dbError } = await supabase
-        .from('materials')
-        .insert([{
-          title: formData.title,
-          description: formData.description,
-          subject: formData.subject,
-          material_type: formData.material_type,
-          file_name: formData.file.name,
-          file_path: filePath,
-          file_size: formData.file.size,
-          file_type: formData.file.type,
-          teacher_id: teacherData.id
-        }]);
-
+      const { error: dbError } = await supabase.from('materials').insert([{
+        title: formData.title, description: formData.description,
+        subject: formData.subject, material_type: formData.material_type,
+        file_name: formData.file.name, file_path: filePath,
+        file_size: formData.file.size, file_type: formData.file.type,
+        teacher_id: teacherData.id
+      }]);
       if (dbError) throw dbError;
 
-      alert('✅ Материал успешно загружен!');
-      setFormData({
-        title: '',
-        description: '',
-        subject: '',
-        material_type: 'lecture',
-        file: null
-      });
+      setFormData({ title: '', description: '', subject: '', material_type: 'lecture', file: null });
       setShowModal(false);
       loadMaterials();
-    } catch (error: any) {
-      alert('❌ Ошибка: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
+    } catch (e: any) { alert('Ошибка: ' + e.message); }
+    finally { setUploading(false); }
   }
 
   async function handleDownload(material: Material) {
-    try {
-      const { data } = supabase.storage
-        .from('materials')
-        .getPublicUrl(material.file_path);
-
-      if (data.publicUrl) {
-        window.open(data.publicUrl, '_blank');
-      }
-    } catch (error: any) {
-      alert('Ошибка при скачивании файла');
-    }
+    const { data } = supabase.storage.from('materials').getPublicUrl(material.file_path);
+    if (data.publicUrl) window.open(data.publicUrl, '_blank');
   }
 
-  async function handleDelete(materialId: string, filePath: string) {
-    if (!confirm('Вы уверены, что хотите удалить этот материал?')) {
-      return;
-    }
+  async function handleDelete(id: string, filePath: string) {
+    if (!confirm('Удалить материал?')) return;
+    await supabase.storage.from('materials').remove([filePath]);
+    await supabase.from('materials').delete().eq('id', id);
+    loadMaterials();
+  }
 
-    try {
-      // Удаляем файл из Storage
-      await supabase.storage
-        .from('materials')
-        .remove([filePath]);
-
-      // Удаляем запись из базы данных
-      await supabase
-        .from('materials')
-        .delete()
-        .eq('id', materialId);
-
-      alert('✅ Материал успешно удален');
-      loadMaterials();
-    } catch (error: any) {
-      alert('❌ Ошибка: ' + error.message);
-    }
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.size <= 50 * 1024 * 1024) setFormData(f => ({ ...f, file }));
   }
 
   const subjects = ['all', ...Array.from(new Set(materials.map(m => m.subject)))];
-  const filteredMaterials = materials.filter(m => 
-    selectedSubject === 'all' || m.subject === selectedSubject
-  );
-
-  const getTypeIcon = (type: string) => {
-    switch(type) {
-      case 'lecture': return '📚';
-      case 'assignment': return '✍️';
-      case 'test': return '📝';
-      case 'exam': return '🎓';
-      default: return '📄';
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch(type) {
-      case 'lecture': return 'from-blue-500 to-indigo-500';
-      case 'assignment': return 'from-green-500 to-emerald-500';
-      case 'test': return 'from-yellow-500 to-orange-500';
-      case 'exam': return 'from-purple-500 to-pink-500';
-      default: return 'from-gray-500 to-gray-600';
-    }
-  };
-
-  if (loading) {
-    return (
-      <UniversalLayout role="teacher">
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-xl gradient-text font-bold">Загрузка...</p>
-        </div>
-      </UniversalLayout>
-    );
-  }
+  const filtered = materials.filter(m => selectedSubject === 'all' || m.subject === selectedSubject);
 
   return (
-    <UniversalLayout role="teacher">
-      <div className="animate-fadeIn">
-        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <DarkLayout role="teacher">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-              📚 Учебные материалы
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter">
+              Учебные <span className="text-red-600">Материалы</span>
             </h1>
-            <p className="text-gray-600">Управление материалами и заданиями</p>
+            <p className="text-gray-500 text-sm mt-1 font-mono">{materials.length} файлов</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="btn-primary"
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
           >
-            ➕ Добавить материал
+            <Plus size={14} /> Добавить
           </button>
         </div>
 
-        {/* Фильтр по предмету */}
+        {/* Subject filter */}
         {subjects.length > 1 && (
-          <div className="ferris-card p-4 mb-6">
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Фильтр по предмету
-            </label>
-            <select
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              className="w-full md:w-64 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-            >
-              <option value="all">Все предметы</option>
-              {subjects.filter(s => s !== 'all').map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Список материалов */}
-        {filteredMaterials.length === 0 ? (
-          <div className="ferris-card p-12 text-center">
-            <div className="text-6xl mb-4">📂</div>
-            <h3 className="text-2xl font-bold mb-2">Материалы пока не загружены</h3>
-            <p className="text-gray-600">Загрузите первый материал для студентов</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredMaterials.map((material, index) => (
-              <div
-                key={material.id}
-                className="ferris-card p-6 hover-lift"
-                style={{ animationDelay: `${index * 0.05}s` }}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {subjects.map(s => (
+              <button key={s}
+                onClick={() => setSelectedSubject(s)}
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                  selectedSubject === s
+                    ? 'bg-red-600/10 border-red-600/30 text-red-500'
+                    : 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                }`}
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className={`w-14 h-14 bg-gradient-to-r ${getTypeColor(material.material_type)} rounded-xl flex items-center justify-center text-3xl`}>
-                      {getTypeIcon(material.material_type)}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-800">{material.title}</h3>
-                      <p className="text-gray-600 text-sm mt-1">{material.description}</p>
-                      <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-2">
-                        <span>📚 {material.subject}</span>
-                        <span>📅 {new Date(material.created_at).toLocaleDateString('ru-RU')}</span>
-                        <span>💾 {(material.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                        <span>📄 {material.file_name}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleDownload(material)}
-                      className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all font-semibold"
-                    >
-                      📥 Скачать
-                    </button>
-                    <button
-                      onClick={() => handleDelete(material.id, material.file_path)}
-                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all font-semibold"
-                    >
-                      🗑️ Удалить
-                    </button>
-                  </div>
-                </div>
-              </div>
+                {s === 'all' ? 'Все' : s}
+              </button>
             ))}
           </div>
         )}
 
-        {/* Модальное окно загрузки */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold gradient-text mb-4">
-                ➕ Добавить материал
-              </h2>
-              <form onSubmit={handleUpload} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Название материала
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Лекция 1: Введение"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Описание
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    placeholder="Краткое описание материала..."
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                    required
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Предмет
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      placeholder="Математика"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      required
-                    />
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20 text-gray-600">
+            <FileText size={40} className="mx-auto mb-3 opacity-30" />
+            <p className="font-bold uppercase text-sm tracking-widest">Нет материалов</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((m, i) => (
+              <motion.div key={m.id}
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06 }}
+                className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center flex-shrink-0">
+                      <FileText size={16} className="text-red-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-black italic uppercase text-sm tracking-tight truncate">{m.title}</h3>
+                        <span className="px-2 py-0.5 rounded bg-white/5 text-gray-500 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
+                          {typeLabels[m.material_type] || m.material_type}
+                        </span>
+                      </div>
+                      <p className="text-gray-500 text-xs mb-2 line-clamp-1">{m.description}</p>
+                      <div className="flex items-center gap-3 text-[11px] font-mono text-gray-600">
+                        <span>{m.subject}</span>
+                        <span>·</span>
+                        <span>{(m.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                        <span>·</span>
+                        <span>{new Date(m.created_at).toLocaleDateString('ru-RU')}</span>
+                      </div>
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Тип материала
-                    </label>
-                    <select
-                      value={formData.material_type}
-                      onChange={(e) => setFormData({ ...formData, material_type: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                    >
-                      <option value="lecture">📚 Лекция</option>
-                      <option value="assignment">✍️ Задание</option>
-                      <option value="test">📝 Тест</option>
-                      <option value="exam">🎓 Экзамен</option>
-                    </select>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={() => handleDownload(m)}
+                      className="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all">
+                      <Download size={14} />
+                    </button>
+                    <button onClick={() => handleDelete(m.id, m.file_path)}
+                      className="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-red-500 hover:border-red-600/30 transition-all">
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Файл
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-500 transition-colors">
-                    <input
-                      type="file"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          const file = e.target.files[0];
-                          if (file.size > 50 * 1024 * 1024) {
-                            alert('Файл слишком большой! Максимальный размер: 50MB');
-                            return;
-                          }
-                          setFormData({ ...formData, file });
-                        }
-                      }}
-                      className="hidden"
-                      id="file-upload"
-                      accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip"
-                      required
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <div className="text-5xl mb-3">📁</div>
-                      {formData.file ? (
-                        <div>
-                          <p className="text-green-600 font-semibold">{formData.file.name}</p>
-                          <p className="text-sm text-gray-500">{(formData.file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="text-gray-600 font-semibold mb-1">Нажмите для выбора файла</p>
-                          <p className="text-sm text-gray-500">PDF, DOC, DOCX, PPT, PPTX, TXT, ZIP (макс. 50MB)</p>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 btn-secondary"
-                  >
-                    ❌ Отмена
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={uploading}
-                    className="flex-1 btn-primary disabled:opacity-50"
-                  >
-                    {uploading ? '⏳ Загрузка...' : '✅ Загрузить'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              </motion.div>
+            ))}
           </div>
         )}
-      </div>
-    </UniversalLayout>
+      </motion.div>
+
+      {/* Upload Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-black italic uppercase text-lg tracking-tight">
+                Новый <span className="text-red-600">Материал</span>
+              </h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpload} className="space-y-4">
+              <input type="text" placeholder="Название материала" value={formData.title}
+                onChange={e => setFormData(f => ({ ...f, title: e.target.value }))} required
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+              />
+              <textarea placeholder="Описание" value={formData.description} rows={2}
+                onChange={e => setFormData(f => ({ ...f, description: e.target.value }))} required
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50 resize-none"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="Предмет" value={formData.subject}
+                  onChange={e => setFormData(f => ({ ...f, subject: e.target.value }))} required
+                  className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+                />
+                <select value={formData.material_type}
+                  onChange={e => setFormData(f => ({ ...f, material_type: e.target.value }))}
+                  className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-red-600/50"
+                >
+                  <option value="lecture">Лекция</option>
+                  <option value="assignment">Задание</option>
+                  <option value="test">Тест</option>
+                  <option value="exam">Экзамен</option>
+                </select>
+              </div>
+
+              {/* Drop zone */}
+              <div
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                  dragOver ? 'border-red-600/50 bg-red-600/5' : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <input type="file" id="file-upload" className="hidden"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file && file.size <= 50 * 1024 * 1024) setFormData(f => ({ ...f, file }));
+                    else if (file) alert('Файл слишком большой (макс. 50MB)');
+                  }}
+                />
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <Upload size={24} className="mx-auto mb-2 text-gray-600" />
+                  {formData.file ? (
+                    <div>
+                      <p className="text-red-500 font-bold text-sm">{formData.file.name}</p>
+                      <p className="text-gray-600 text-xs">{(formData.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-gray-400 text-sm font-bold">Перетащите файл или нажмите</p>
+                      <p className="text-gray-600 text-xs mt-1">PDF, DOC, PPT, ZIP — макс. 50MB</p>
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowModal(false)}
+                  className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all">
+                  Отмена
+                </button>
+                <button type="submit" disabled={uploading}
+                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-[11px] font-black uppercase tracking-widest transition-all">
+                  {uploading ? 'Загрузка...' : 'Загрузить'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </DarkLayout>
   );
 }
