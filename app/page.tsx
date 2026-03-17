@@ -1,21 +1,19 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
-import { MessageCircle, ArrowUpRight } from 'lucide-react';
+import { MessageCircle, ArrowUpRight, User, GraduationCap, ShieldCheck, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 
 export default function LandingPage() {
   const router = useRouter();
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [checking, setChecking] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+  const { scrollYProgress } = useScroll({ offset: ["start start", "end end"] });
   const heroScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.9]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
@@ -33,13 +31,44 @@ export default function LandingPage() {
     checkUser();
   }, [router]);
 
+  // Close modal on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setModalOpen(false); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const roles = [
+    {
+      icon: GraduationCap,
+      label: 'Студент',
+      sub: 'Student Portal',
+      href: '/login',
+      desc: 'Расписание, оценки, библиотека и магазин',
+    },
+    {
+      icon: User,
+      label: 'Преподаватель',
+      sub: 'Teacher Portal',
+      href: '/login',
+      desc: 'Журнал оценок, материалы и расписание',
+    },
+    {
+      icon: ShieldCheck,
+      label: 'Администратор',
+      sub: 'Admin Portal',
+      href: '/login',
+      desc: 'Управление системой и пользователями',
+    },
+  ];
+
   const specs = [
-    { id: "06130100", name: "Software", full: "Программное обеспечение", img: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600" },
-    { id: "04210100", name: "Law", full: "Правоведение", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600" },
-    { id: "04140100", name: "Audit", full: "Учет и аудит", img: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600" },
-    { id: "04130100", name: "Management", full: "Менеджмент", img: "https://images.unsplash.com/photo-1454165833767-027ffea9e778?q=80&w=600" },
-    { id: "04140100", name: "Marketing", full: "Маркетинг", img: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?q=80&w=600" },
-    { id: "04120100", name: "Finance", full: "Банковское дело", img: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=600" },
+    { id: "06130100", full: "Программное обеспечение", img: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600" },
+    { id: "04210100", full: "Правоведение", img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600" },
+    { id: "04140100", full: "Учет и аудит", img: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600" },
+    { id: "04130100", full: "Менеджмент", img: "https://images.unsplash.com/photo-1454165833767-027ffea9e778?q=80&w=600" },
+    { id: "04140100", full: "Маркетинг", img: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?q=80&w=600" },
+    { id: "04120100", full: "Банковское дело", img: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=600" },
   ];
 
   if (checking) {
@@ -69,11 +98,12 @@ export default function LandingPage() {
           <div className="hidden md:flex gap-2 text-[10px] font-bold mr-4 text-gray-500 uppercase">
             <span className="text-white">RU</span> / <span>KZ</span>
           </div>
-          <Link href="/login">
-            <button className="bg-white text-black px-6 py-2 rounded-full text-[10px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">
-              Войти
-            </button>
-          </Link>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-white text-black px-6 py-2 rounded-full text-[10px] font-black uppercase hover:bg-red-600 hover:text-white transition-all"
+          >
+            Войти
+          </button>
         </div>
       </nav>
 
@@ -163,7 +193,7 @@ export default function LandingPage() {
 
       {/* FOOTER */}
       <footer id="contacts" className="relative z-20 bg-black pt-32 pb-12 px-6 md:px-12 border-t border-white/5">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12 mb-20">
           <div>
             <h5 className="font-bold text-xs mb-8 text-white uppercase tracking-widest">О колледже</h5>
             <ul className="text-gray-500 text-xs space-y-4 uppercase font-bold tracking-tighter">
@@ -181,7 +211,7 @@ export default function LandingPage() {
               <li className="hover:text-red-600 cursor-pointer transition-colors">Стоимость</li>
             </ul>
           </div>
-          <div className="md:col-span-2 lg:col-span-1">
+          <div>
             <h5 className="font-bold text-xs mb-8 text-white uppercase tracking-widest">Студентам</h5>
             <ul className="text-gray-500 text-xs space-y-4 uppercase font-bold tracking-tighter">
               <li className="hover:text-red-600 cursor-pointer transition-colors">Расписание</li>
@@ -189,7 +219,7 @@ export default function LandingPage() {
               <li className="hover:text-red-600 cursor-pointer transition-colors">Digital ID</li>
             </ul>
           </div>
-          <div className="col-span-2 lg:text-right flex flex-col lg:items-end">
+          <div className="col-span-2 lg:col-span-1 lg:text-right flex flex-col lg:items-end">
             <div className="font-black italic text-4xl mb-6 tracking-tighter leading-none">
               NARXOZ <br /> <span className="text-red-600 text-2xl uppercase">College</span>
             </div>
@@ -206,6 +236,79 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+
+      {/* AUTH MODAL */}
+      <AnimatePresence>
+        {modalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setModalOpen(false)}
+              className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md"
+            />
+
+            {/* Modal */}
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-[201] flex items-center justify-center p-6 pointer-events-none"
+            >
+              <div className="pointer-events-auto w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[32px] p-8 md:p-12 relative">
+
+                {/* Close */}
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="absolute top-6 right-6 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-500 hover:text-white hover:border-white/30 transition-all"
+                >
+                  <X size={18} />
+                </button>
+
+                {/* Title */}
+                <div className="mb-10">
+                  <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-3">Narxoz College</p>
+                  <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter leading-none">
+                    Выберите <br /><span className="text-white/20">роль</span>
+                  </h2>
+                </div>
+
+                {/* Role Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {roles.map((role) => {
+                    const Icon = role.icon;
+                    return (
+                      <Link key={role.label} href={role.href} onClick={() => setModalOpen(false)}>
+                        <motion.div
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="group relative p-6 rounded-[20px] bg-white/[0.03] border border-white/5 hover:border-red-600/60 hover:shadow-[0_0_30px_rgba(220,38,38,0.15)] transition-all duration-300 cursor-pointer h-full"
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-white/5 group-hover:bg-red-600/10 border border-white/5 group-hover:border-red-600/30 flex items-center justify-center mb-5 transition-all duration-300">
+                            <Icon size={22} className="text-gray-400 group-hover:text-red-500 transition-colors duration-300" />
+                          </div>
+                          <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-600 mb-1">{role.sub}</p>
+                          <h3 className="font-black italic uppercase text-lg tracking-tighter mb-2">{role.label}</h3>
+                          <p className="text-gray-600 text-xs leading-relaxed">{role.desc}</p>
+                          <div className="mt-4 flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-gray-700 group-hover:text-red-600 transition-colors">
+                            Войти <ArrowUpRight size={10} />
+                          </div>
+                        </motion.div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
     </div>
   );

@@ -2,26 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import UniversalLayout from '@/components/UniversalLayout';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { BarChart2, BookOpen, Newspaper, ShoppingBag, Calendar, ArrowUpRight, Library, ArrowLeftRight } from 'lucide-react';
+
+const stagger = {
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.08 } } },
+  item: { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } },
+};
 
 export default function StudentDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
-  const [stats, setStats] = useState({
-    gpa: 0,
-    courses: 0,
-    news: 0,
-    materials: 0
-  });
+  const [stats, setStats] = useState({ gpa: 0, courses: 0, news: 0, materials: 0 });
   const [recentNews, setRecentNews] = useState<any[]>([]);
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  useEffect(() => { loadDashboard(); }, []);
 
   async function loadDashboard() {
     try {
@@ -30,208 +30,139 @@ export default function StudentDashboard() {
       const group = user?.user_metadata?.group || '';
       setUserName(name);
 
-      // Загрузить статистику
       const [newsData, materialsData, gradesData, scheduleData] = await Promise.all([
         supabase.from('news').select('*', { count: 'exact' }).eq('published', true),
         supabase.from('materials').select('*', { count: 'exact' }),
         supabase.from('grades').select('grade').eq('student_name', name),
-        supabase.from('schedule').select('*').eq('group_name', group).limit(3)
+        supabase.from('schedule').select('*').eq('group_name', group).limit(3),
       ]);
 
-      // Подсчитать GPA
       const grades = gradesData.data || [];
-      const avgGrade = grades.length > 0 
-        ? grades.reduce((sum, g) => sum + g.grade, 0) / grades.length 
-        : 0;
-      const gpa = (avgGrade / 100 * 4).toFixed(2);
+      const avg = grades.length > 0 ? grades.reduce((s, g) => s + g.grade, 0) / grades.length : 0;
+      setStats({ gpa: parseFloat((avg / 100 * 4).toFixed(2)), courses: scheduleData.data?.length || 0, news: newsData.count || 0, materials: materialsData.count || 0 });
 
-      setStats({
-        gpa: parseFloat(gpa),
-        courses: scheduleData.data?.length || 0,
-        news: newsData.count || 0,
-        materials: materialsData.count || 0
-      });
-
-      // Загрузить последние новости
-      const { data: news } = await supabase
-        .from('news')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(3);
+      const { data: news } = await supabase.from('news').select('*').eq('published', true).order('created_at', { ascending: false }).limit(3);
       setRecentNews(news || []);
-
       setUpcomingClasses(scheduleData.data || []);
-    } catch (error) {
-      console.error('Ошибка загрузки:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }
 
-  const quickActions = [
-    { icon: '📚', label: 'Расписание', href: '/student/schedule', color: 'from-blue-500 to-cyan-500' },
-    { icon: '📊', label: 'Оценки', href: '/student/grades', color: 'from-purple-500 to-pink-500' },
-    { icon: '📰', label: 'Новости', href: '/student/news', color: 'from-orange-500 to-red-500' },
-    { icon: '🛍️', label: 'Магазин', href: '/student/shop', color: 'from-green-500 to-emerald-500' },
-    { icon: '📖', label: 'Библиотека', href: '/student/library', color: 'from-indigo-500 to-purple-500' },
-    { icon: '📁', label: 'Материалы', href: '/student/exchange', color: 'from-pink-500 to-rose-500' }
+  const statCards = [
+    { label: 'GPA', value: stats.gpa, icon: BarChart2, id: '01' },
+    { label: 'Курсов', value: stats.courses, icon: BookOpen, id: '02' },
+    { label: 'Новостей', value: stats.news, icon: Newspaper, id: '03' },
+    { label: 'Материалов', value: stats.materials, icon: Library, id: '04' },
   ];
 
-  if (loading) {
-    return (
-      <UniversalLayout role="student">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Загрузка...</p>
-          </div>
-        </div>
-      </UniversalLayout>
-    );
-  }
+  const quickActions = [
+    { label: 'Расписание', href: '/student/schedule', icon: Calendar, desc: 'Мои занятия' },
+    { label: 'Оценки', href: '/student/grades', icon: BarChart2, desc: 'Успеваемость' },
+    { label: 'Новости', href: '/student/news', icon: Newspaper, desc: 'Объявления' },
+    { label: 'Магазин', href: '/student/shop', icon: ShoppingBag, desc: 'Бонусы' },
+    { label: 'Библиотека', href: '/student/library', icon: Library, desc: 'Книги' },
+    { label: 'Материалы', href: '/student/exchange', icon: ArrowLeftRight, desc: 'Файлы' },
+  ];
+
+  if (loading) return (
+    <DarkLayout role="student">
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </DarkLayout>
+  );
 
   return (
-    <UniversalLayout role="student">
-      <div className="container-modern animate-fade-in">
-        {/* Приветствие */}
-        <div className="modern-card-gradient p-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Привет, {userName}! 👋
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Добро пожаловать в твою панель управления
-              </p>
-            </div>
-            <div className="hidden md:block text-6xl">🎓</div>
-          </div>
-        </div>
+    <DarkLayout role="student">
+      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-8">
 
-        {/* Статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <div className="stat-icon bg-gradient-to-br from-purple-500 to-pink-500">
-              📊
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.gpa}</div>
-              <div className="stat-label">Средний GPA</div>
-            </div>
-          </div>
+        {/* Header */}
+        <motion.div variants={stagger.item} className="border-b border-white/5 pb-8">
+          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-2">Student Portal</p>
+          <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
+            Привет, <span className="text-white/20">{userName}</span>
+          </h1>
+        </motion.div>
 
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <div className="stat-icon bg-gradient-to-br from-blue-500 to-cyan-500">
-              📚
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.courses}</div>
-              <div className="stat-label">Активных курсов</div>
-            </div>
-          </div>
-
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <div className="stat-icon bg-gradient-to-br from-orange-500 to-red-500">
-              📰
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.news}</div>
-              <div className="stat-label">Новостей</div>
-            </div>
-          </div>
-
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <div className="stat-icon bg-gradient-to-br from-green-500 to-emerald-500">
-              📁
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.materials}</div>
-              <div className="stat-label">Материалов</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Быстрые действия */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Быстрые действия</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {quickActions.map((action, index) => (
-              <button
-                key={action.href}
-                onClick={() => router.push(action.href)}
-                className="modern-card p-6 text-center hover:scale-105 transition-transform animate-scale-in"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className={`w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center text-3xl shadow-lg`}>
-                  {action.icon}
+        {/* Stats */}
+        <motion.div variants={stagger.item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {statCards.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.id} className="p-6 rounded-[20px] bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group">
+                <div className="flex justify-between items-start mb-4">
+                  <Icon size={18} className="text-gray-600 group-hover:text-red-500 transition-colors" />
+                  <span className="text-[9px] font-mono text-gray-700">{s.id}</span>
                 </div>
-                <p className="font-semibold text-gray-900 text-sm">{action.label}</p>
-              </button>
-            ))}
-          </div>
-        </div>
+                <div className="text-3xl font-black italic tracking-tighter">{s.value}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-1">{s.label}</div>
+              </div>
+            );
+          })}
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Последние новости */}
-          <div className="modern-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">📰 Последние новости</h2>
-              <button
-                onClick={() => router.push('/student/news')}
-                className="text-purple-600 hover:text-purple-700 font-semibold text-sm"
-              >
-                Все новости →
+        {/* Quick Actions */}
+        <motion.div variants={stagger.item}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-600 mb-4">Быстрый доступ</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {quickActions.map((a) => {
+              const Icon = a.icon;
+              return (
+                <button key={a.href} onClick={() => router.push(a.href)}
+                  className="group p-5 rounded-[20px] bg-white/[0.02] border border-white/5 hover:border-red-600/30 hover:shadow-[0_0_20px_rgba(220,38,38,0.08)] transition-all text-left">
+                  <Icon size={20} className="text-gray-600 group-hover:text-red-500 transition-colors mb-3" />
+                  <p className="text-xs font-black italic uppercase tracking-tighter">{a.label}</p>
+                  <p className="text-[9px] text-gray-600 mt-0.5">{a.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* News + Schedule */}
+        <motion.div variants={stagger.item} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* News */}
+          <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-500">Последние новости</p>
+              <button onClick={() => router.push('/student/news')} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-gray-600 hover:text-red-500 transition-colors">
+                Все <ArrowUpRight size={10} />
               </button>
             </div>
-            <div className="space-y-4">
-              {recentNews.length > 0 ? (
-                recentNews.map((news) => (
-                  <div key={news.id} className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-shadow">
-                    <h3 className="font-bold text-gray-900 mb-1">{news.title}</h3>
-                    <p className="text-sm text-gray-600 line-clamp-2">{news.content}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {new Date(news.created_at).toLocaleDateString('ru-RU')}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-8">Новостей пока нет</p>
-              )}
+            <div className="space-y-3">
+              {recentNews.length > 0 ? recentNews.map((n) => (
+                <div key={n.id} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+                  <p className="text-sm font-bold text-white mb-1 line-clamp-1">{n.title}</p>
+                  <p className="text-[11px] text-gray-600 line-clamp-2">{n.content}</p>
+                  <p className="text-[9px] text-gray-700 mt-2 font-mono">{new Date(n.created_at).toLocaleDateString('ru-RU')}</p>
+                </div>
+              )) : <p className="text-gray-700 text-sm text-center py-6">Новостей пока нет</p>}
             </div>
           </div>
 
-          {/* Ближайшие занятия */}
-          <div className="modern-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">📅 Ближайшие занятия</h2>
-              <button
-                onClick={() => router.push('/student/schedule')}
-                className="text-purple-600 hover:text-purple-700 font-semibold text-sm"
-              >
-                Расписание →
+          {/* Schedule */}
+          <div className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-500">Ближайшие занятия</p>
+              <button onClick={() => router.push('/student/schedule')} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-gray-600 hover:text-red-500 transition-colors">
+                Все <ArrowUpRight size={10} />
               </button>
             </div>
-            <div className="space-y-4">
-              {upcomingClasses.length > 0 ? (
-                upcomingClasses.map((cls, index) => (
-                  <div key={index} className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-bold text-gray-900">{cls.subject}</h3>
-                      <span className="badge-modern-info">{cls.room}</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {cls.start_time} - {cls.end_time}
-                    </p>
+            <div className="space-y-3">
+              {upcomingClasses.length > 0 ? upcomingClasses.map((c, i) => (
+                <div key={i} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+                  <div className="flex justify-between items-start">
+                    <p className="text-sm font-bold text-white">{c.subject}</p>
+                    <span className="text-[9px] font-mono text-red-500 border border-red-600/20 px-2 py-0.5 rounded-full">{c.room}</span>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-8">Занятий пока нет</p>
-              )}
+                  <p className="text-[11px] text-gray-600 mt-1 font-mono">{c.start_time} — {c.end_time}</p>
+                </div>
+              )) : <p className="text-gray-700 text-sm text-center py-6">Занятий пока нет</p>}
             </div>
           </div>
-        </div>
-      </div>
-    </UniversalLayout>
+        </motion.div>
+
+      </motion.div>
+    </DarkLayout>
   );
 }

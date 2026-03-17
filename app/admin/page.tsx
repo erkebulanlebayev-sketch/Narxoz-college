@@ -2,186 +2,134 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import UniversalLayout from '@/components/UniversalLayout';
+import { motion } from 'framer-motion';
+import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
+import { GraduationCap, Users, Newspaper, Calendar, ShoppingBag, Settings, ShieldCheck, ArrowUpRight } from 'lucide-react';
+
+const stagger = {
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.08 } } },
+  item: { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } },
+};
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [stats, setStats] = useState({
-    students: 0,
-    teachers: 0,
-    news: 0,
-    schedule: 0
-  });
+  const [stats, setStats] = useState({ students: 0, teachers: 0, news: 0, schedule: 0 });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  useEffect(() => { loadDashboard(); }, []);
 
   async function loadDashboard() {
     try {
-      const [studentsData, teachersData, newsData, scheduleData] = await Promise.all([
+      const [s, t, n, sc] = await Promise.all([
         supabase.from('students').select('*', { count: 'exact' }),
         supabase.from('teachers').select('*', { count: 'exact' }),
         supabase.from('news').select('*', { count: 'exact' }),
-        supabase.from('schedule').select('*', { count: 'exact' })
+        supabase.from('schedule').select('*', { count: 'exact' }),
       ]);
-
-      setStats({
-        students: studentsData.count || 0,
-        teachers: teachersData.count || 0,
-        news: newsData.count || 0,
-        schedule: scheduleData.count || 0
-      });
-
-      // Последние новости как активность
-      const { data: news } = await supabase
-        .from('news')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
+      setStats({ students: s.count || 0, teachers: t.count || 0, news: n.count || 0, schedule: sc.count || 0 });
+      const { data: news } = await supabase.from('news').select('*').order('created_at', { ascending: false }).limit(5);
       setRecentActivity(news || []);
-    } catch (error) {
-      console.error('Ошибка загрузки:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }
 
-  const quickActions = [
-    { icon: '📰', label: 'Новости', href: '/admin/news', color: 'from-orange-500 to-red-500', desc: 'Управление новостями' },
-    { icon: '📅', label: 'Расписание', href: '/admin/schedule', color: 'from-blue-500 to-cyan-500', desc: 'Создать расписание' },
-    { icon: '👥', label: 'Студенты', href: '/admin/students', color: 'from-purple-500 to-pink-500', desc: 'Список студентов' },
-    { icon: '👨‍🏫', label: 'Преподаватели', href: '/admin/teachers', color: 'from-green-500 to-emerald-500', desc: 'Список преподавателей' },
-    { icon: '🛍️', label: 'Магазин', href: '/admin/shop', color: 'from-pink-500 to-rose-500', desc: 'Товары магазина' },
-    { icon: '⚙️', label: 'Настройки', href: '/admin/settings', color: 'from-indigo-500 to-purple-500', desc: 'Системные настройки' }
+  const statCards = [
+    { label: 'Студентов', value: stats.students, icon: GraduationCap, id: '01' },
+    { label: 'Преподавателей', value: stats.teachers, icon: Users, id: '02' },
+    { label: 'Новостей', value: stats.news, icon: Newspaper, id: '03' },
+    { label: 'Занятий', value: stats.schedule, icon: Calendar, id: '04' },
   ];
 
-  if (loading) {
-    return (
-      <UniversalLayout role="admin">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Загрузка...</p>
-          </div>
-        </div>
-      </UniversalLayout>
-    );
-  }
+  const quickActions = [
+    { label: 'Новости', href: '/admin/news', icon: Newspaper, desc: 'Управление' },
+    { label: 'Расписание', href: '/admin/schedule', icon: Calendar, desc: 'Создать' },
+    { label: 'Студенты', href: '/admin/students', icon: GraduationCap, desc: 'Список' },
+    { label: 'Преподаватели', href: '/admin/teachers', icon: Users, desc: 'Список' },
+    { label: 'Магазин', href: '/admin/shop', icon: ShoppingBag, desc: 'Товары' },
+    { label: 'Пользователи', href: '/admin/users', icon: ShieldCheck, desc: 'Контроль' },
+    { label: 'Настройки', href: '/admin/settings', icon: Settings, desc: 'Система' },
+  ];
+
+  if (loading) return (
+    <DarkLayout role="admin">
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </DarkLayout>
+  );
 
   return (
-    <UniversalLayout role="admin">
-      <div className="container-modern animate-fade-in">
-        {/* Приветствие */}
-        <div className="modern-card-gradient p-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Панель администратора 🎯
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Управление системой колледжа
-              </p>
-            </div>
-            <div className="hidden md:block text-6xl">⚡</div>
-          </div>
-        </div>
+    <DarkLayout role="admin">
+      <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-8">
 
-        {/* Статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <div className="stat-icon bg-gradient-to-br from-purple-500 to-pink-500">
-              👥
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.students}</div>
-              <div className="stat-label">Студентов</div>
-            </div>
-          </div>
+        <motion.div variants={stagger.item} className="border-b border-white/5 pb-8">
+          <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-2">Admin Portal</p>
+          <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
+            System <span className="text-white/20">Control</span>
+          </h1>
+        </motion.div>
 
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <div className="stat-icon bg-gradient-to-br from-green-500 to-emerald-500">
-              👨‍🏫
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.teachers}</div>
-              <div className="stat-label">Преподавателей</div>
-            </div>
-          </div>
-
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <div className="stat-icon bg-gradient-to-br from-orange-500 to-red-500">
-              📰
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.news}</div>
-              <div className="stat-label">Новостей</div>
-            </div>
-          </div>
-
-          <div className="stat-card animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <div className="stat-icon bg-gradient-to-br from-blue-500 to-cyan-500">
-              📅
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.schedule}</div>
-              <div className="stat-label">Занятий</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Быстрые действия */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Быстрые действия</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {quickActions.map((action, index) => (
-              <button
-                key={action.href}
-                onClick={() => router.push(action.href)}
-                className="modern-card p-6 text-left hover:scale-105 transition-transform animate-scale-in"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className={`w-14 h-14 mb-4 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center text-3xl shadow-lg`}>
-                  {action.icon}
+        {/* Stats */}
+        <motion.div variants={stagger.item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {statCards.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.id} className="p-6 rounded-[20px] bg-white/[0.02] border border-white/5 hover:border-red-600/20 transition-all group">
+                <div className="flex justify-between items-start mb-4">
+                  <Icon size={18} className="text-gray-600 group-hover:text-red-500 transition-colors" />
+                  <span className="text-[9px] font-mono text-gray-700">{s.id}</span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-1">{action.label}</h3>
-                <p className="text-sm text-gray-600">{action.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
+                <div className="text-3xl font-black italic tracking-tighter">{s.value}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mt-1">{s.label}</div>
+              </div>
+            );
+          })}
+        </motion.div>
 
-        {/* Последняя активность */}
-        <div className="modern-card p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 Последняя активность</h2>
-          <div className="space-y-4">
-            {recentActivity.length > 0 ? (
-              recentActivity.map((item) => (
-                <div key={item.id} className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-shadow">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                    📰
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900">{item.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.content}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {new Date(item.created_at).toLocaleString('ru-RU')}
-                    </p>
-                  </div>
-                  <span className={`badge-modern-${item.published ? 'success' : 'warning'}`}>
-                    {item.published ? 'Опубликовано' : 'Черновик'}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-center py-8">Активности пока нет</p>
-            )}
+        {/* Quick Actions */}
+        <motion.div variants={stagger.item}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-600 mb-4">Управление</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {quickActions.map((a) => {
+              const Icon = a.icon;
+              return (
+                <button key={a.href} onClick={() => router.push(a.href)}
+                  className="group p-5 rounded-[20px] bg-white/[0.02] border border-white/5 hover:border-red-600/30 hover:shadow-[0_0_20px_rgba(220,38,38,0.08)] transition-all text-left">
+                  <Icon size={20} className="text-gray-600 group-hover:text-red-500 transition-colors mb-3" />
+                  <p className="text-xs font-black italic uppercase tracking-tighter">{a.label}</p>
+                  <p className="text-[9px] text-gray-600 mt-0.5">{a.desc}</p>
+                </button>
+              );
+            })}
           </div>
-        </div>
-      </div>
-    </UniversalLayout>
+        </motion.div>
+
+        {/* Activity */}
+        <motion.div variants={stagger.item} className="rounded-[24px] bg-white/[0.02] border border-white/5 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-500">Последняя активность</p>
+            <button onClick={() => router.push('/admin/news')} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-gray-600 hover:text-red-500 transition-colors">
+              Все <ArrowUpRight size={10} />
+            </button>
+          </div>
+          <div className="space-y-3">
+            {recentActivity.length > 0 ? recentActivity.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{item.title}</p>
+                  <p className="text-[9px] font-mono text-gray-600 mt-1">{new Date(item.created_at).toLocaleString('ru-RU')}</p>
+                </div>
+                <span className={`ml-4 text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${item.published ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-yellow-500 border-yellow-500/20 bg-yellow-500/5'}`}>
+                  {item.published ? 'Live' : 'Draft'}
+                </span>
+              </div>
+            )) : <p className="text-gray-700 text-sm text-center py-6">Активности пока нет</p>}
+          </div>
+        </motion.div>
+
+      </motion.div>
+    </DarkLayout>
   );
 }
