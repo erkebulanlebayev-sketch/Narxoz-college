@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import DarkLayout from '@/components/DarkLayout';
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser } from '@/lib/auth';
-import { Upload, FileText, Download, Trash2, Plus, X } from 'lucide-react';
+import { Upload, FileText, Download, Trash2, Plus, X, Search } from 'lucide-react';
 
 interface Material {
   id: string;
@@ -23,6 +23,10 @@ interface Material {
 
 const typeLabels: Record<string, string> = {
   lecture: 'Лекция', assignment: 'Задание', test: 'Тест', exam: 'Экзамен'
+};
+
+const typeColors: Record<string, string> = {
+  lecture: 'text-blue-400', assignment: 'text-yellow-400', test: 'text-purple-400', exam: 'text-red-400'
 };
 
 export default function TeacherMaterialsPage() {
@@ -70,15 +74,11 @@ export default function TeacherMaterialsPage() {
       const { data: teacherData } = await supabase
         .from('teachers').select('id').eq('email', user?.email).single();
       if (!teacherData) { alert('Учитель не найден'); return; }
-
       const fileExt = formData.file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `teacher-materials/${teacherData.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('materials').upload(filePath, formData.file);
+      const { error: uploadError } = await supabase.storage.from('materials').upload(filePath, formData.file);
       if (uploadError) throw uploadError;
-
       const { error: dbError } = await supabase.from('materials').insert([{
         title: formData.title, description: formData.description,
         subject: formData.subject, material_type: formData.material_type,
@@ -87,7 +87,6 @@ export default function TeacherMaterialsPage() {
         teacher_id: teacherData.id
       }]);
       if (dbError) throw dbError;
-
       setFormData({ title: '', description: '', subject: '', material_type: 'lecture', file: null });
       setShowModal(false);
       loadMaterials();
@@ -119,32 +118,34 @@ export default function TeacherMaterialsPage() {
 
   return (
     <DarkLayout role="teacher">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+
+        {/* HEADER */}
+        <div className="flex items-end justify-between border-b border-white/5 pb-8">
           <div>
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-              Учебные <span className="text-red-600">Материалы</span>
+            <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-3">Narxoz College</p>
+            <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none mb-4">
+              Материалы
             </h1>
-            <p className="text-gray-500 text-sm mt-1 font-mono">{materials.length} файлов</p>
+            <p className="text-gray-600 text-xs font-bold uppercase tracking-widest">{materials.length} файлов загружено</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all"
           >
             <Plus size={14} /> Добавить
           </button>
         </div>
 
-        {/* Subject filter */}
+        {/* SUBJECT FILTER */}
         {subjects.length > 1 && (
           <div className="flex gap-2 overflow-x-auto pb-1">
             {subjects.map(s => (
-              <button key={s}
-                onClick={() => setSelectedSubject(s)}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+              <button key={s} onClick={() => setSelectedSubject(s)}
+                className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
                   selectedSubject === s
-                    ? 'bg-red-600/10 border-red-600/30 text-red-500'
-                    : 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                    ? 'bg-red-600 border-red-600 text-white'
+                    : 'border-white/10 text-gray-500 hover:border-white/20 hover:text-white'
                 }`}
               >
                 {s === 'all' ? 'Все' : s}
@@ -154,51 +155,47 @@ export default function TeacherMaterialsPage() {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-32">
             <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20 text-gray-600">
-            <FileText size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="font-bold uppercase text-sm tracking-widest">Нет материалов</p>
+          <div className="text-center py-32 text-gray-700">
+            <FileText size={48} className="mx-auto mb-4 opacity-20" />
+            <p className="font-black italic uppercase text-xl tracking-tighter">Нет материалов</p>
+            <p className="text-xs text-gray-700 mt-2 uppercase tracking-widest font-bold">Загрузите первый файл</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map((m, i) => (
               <motion.div key={m.id}
-                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
-                className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                className="group relative p-6 rounded-[24px] bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/20 flex items-center justify-center flex-shrink-0">
-                      <FileText size={16} className="text-red-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-black italic uppercase text-sm tracking-tight truncate">{m.title}</h3>
-                        <span className="px-2 py-0.5 rounded bg-white/5 text-gray-500 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
-                          {typeLabels[m.material_type] || m.material_type}
-                        </span>
-                      </div>
-                      <p className="text-gray-500 text-xs mb-2 line-clamp-1">{m.description}</p>
-                      <div className="flex items-center gap-3 text-[11px] font-mono text-gray-600">
-                        <span>{m.subject}</span>
-                        <span>·</span>
-                        <span>{(m.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                        <span>·</span>
-                        <span>{new Date(m.created_at).toLocaleDateString('ru-RU')}</span>
-                      </div>
-                    </div>
+                <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center mb-5">
+                  <FileText size={20} className="text-red-500" />
+                </div>
+
+                <div className="flex-1 mb-4">
+                  <p className={`font-mono text-[9px] tracking-widest uppercase mb-2 ${typeColors[m.material_type] || 'text-gray-500'}`}>
+                    {typeLabels[m.material_type] || m.material_type} · {m.subject}
+                  </p>
+                  <h3 className="font-black italic uppercase text-base tracking-tight leading-tight mb-1">{m.title}</h3>
+                  <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed">{m.description}</p>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div>
+                    <p className="text-[9px] font-mono text-gray-700">{(m.file_size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-[9px] font-mono text-gray-700">{new Date(m.created_at).toLocaleDateString('ru-RU')}</p>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2">
                     <button onClick={() => handleDownload(m)}
-                      className="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all">
+                      className="p-2.5 rounded-xl border border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all">
                       <Download size={14} />
                     </button>
                     <button onClick={() => handleDelete(m.id, m.file_path)}
-                      className="p-2 rounded-xl border border-white/10 text-gray-400 hover:text-red-500 hover:border-red-600/30 transition-all">
+                      className="p-2.5 rounded-xl border border-white/10 text-gray-500 hover:text-red-500 hover:border-red-600/30 transition-all">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -207,41 +204,46 @@ export default function TeacherMaterialsPage() {
             ))}
           </div>
         )}
+
       </motion.div>
 
-      {/* Upload Modal */}
+      {/* UPLOAD MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[28px] p-8 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-black italic uppercase text-lg tracking-tight">
-                Новый <span className="text-red-600">Материал</span>
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-white transition-colors">
-                <X size={18} />
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-1">Загрузка</p>
+                <h2 className="font-black italic uppercase text-2xl tracking-tighter">
+                  Новый материал
+                </h2>
+              </div>
+              <button onClick={() => setShowModal(false)}
+                className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-500 hover:text-white hover:border-white/30 transition-all">
+                <X size={16} />
               </button>
             </div>
 
             <form onSubmit={handleUpload} className="space-y-4">
               <input type="text" placeholder="Название материала" value={formData.title}
                 onChange={e => setFormData(f => ({ ...f, title: e.target.value }))} required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+                className="w-full px-4 py-3 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/40 transition-all"
               />
               <textarea placeholder="Описание" value={formData.description} rows={2}
                 onChange={e => setFormData(f => ({ ...f, description: e.target.value }))} required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50 resize-none"
+                className="w-full px-4 py-3 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/40 transition-all resize-none"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input type="text" placeholder="Предмет" value={formData.subject}
                   onChange={e => setFormData(f => ({ ...f, subject: e.target.value }))} required
-                  className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/50"
+                  className="px-4 py-3 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-600/40 transition-all"
                 />
                 <select value={formData.material_type}
                   onChange={e => setFormData(f => ({ ...f, material_type: e.target.value }))}
-                  className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-red-600/50"
+                  className="px-4 py-3 bg-[#0a0a0a] border border-white/5 rounded-2xl text-sm text-white focus:outline-none focus:border-red-600/40 transition-all"
                 >
                   <option value="lecture">Лекция</option>
                   <option value="assignment">Задание</option>
@@ -250,12 +252,11 @@ export default function TeacherMaterialsPage() {
                 </select>
               </div>
 
-              {/* Drop zone */}
               <div
                 onDragOver={e => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all ${
                   dragOver ? 'border-red-600/50 bg-red-600/5' : 'border-white/10 hover:border-white/20'
                 }`}
               >
@@ -268,16 +269,16 @@ export default function TeacherMaterialsPage() {
                   }}
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload size={24} className="mx-auto mb-2 text-gray-600" />
+                  <Upload size={28} className="mx-auto mb-3 text-gray-600" />
                   {formData.file ? (
                     <div>
-                      <p className="text-red-500 font-bold text-sm">{formData.file.name}</p>
-                      <p className="text-gray-600 text-xs">{(formData.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-red-500 font-black italic uppercase text-sm">{formData.file.name}</p>
+                      <p className="text-gray-600 text-xs mt-1">{(formData.file.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   ) : (
                     <div>
-                      <p className="text-gray-400 text-sm font-bold">Перетащите файл или нажмите</p>
-                      <p className="text-gray-600 text-xs mt-1">PDF, DOC, PPT, ZIP — макс. 50MB</p>
+                      <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Перетащите или нажмите</p>
+                      <p className="text-gray-700 text-xs mt-1">PDF, DOC, PPT, ZIP — макс. 50MB</p>
                     </div>
                   )}
                 </label>
@@ -285,11 +286,11 @@ export default function TeacherMaterialsPage() {
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)}
-                  className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all">
+                  className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all">
                   Отмена
                 </button>
                 <button type="submit" disabled={uploading}
-                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-[11px] font-black uppercase tracking-widest transition-all">
+                  className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-[11px] font-black uppercase tracking-widest transition-all">
                   {uploading ? 'Загрузка...' : 'Загрузить'}
                 </button>
               </div>

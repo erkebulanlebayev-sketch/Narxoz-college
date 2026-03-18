@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
@@ -31,7 +31,6 @@ export default function LandingPage() {
     checkUser();
   }, [router]);
 
-  // Close modal on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setModalOpen(false); };
     window.addEventListener('keydown', handler);
@@ -39,27 +38,9 @@ export default function LandingPage() {
   }, []);
 
   const roles = [
-    {
-      icon: GraduationCap,
-      label: 'Студент',
-      sub: 'Student Portal',
-      href: '/login',
-      desc: 'Расписание, оценки, библиотека и магазин',
-    },
-    {
-      icon: User,
-      label: 'Преподаватель',
-      sub: 'Teacher Portal',
-      href: '/login',
-      desc: 'Журнал оценок, материалы и расписание',
-    },
-    {
-      icon: ShieldCheck,
-      label: 'Администратор',
-      sub: 'Admin Portal',
-      href: '/login',
-      desc: 'Управление системой и пользователями',
-    },
+    { icon: GraduationCap, label: 'Студент', sub: 'Student Portal', href: '/login', desc: 'Расписание, оценки, библиотека и магазин' },
+    { icon: User, label: 'Преподаватель', sub: 'Teacher Portal', href: '/login', desc: 'Журнал оценок, материалы и расписание' },
+    { icon: ShieldCheck, label: 'Администратор', sub: 'Admin Portal', href: '/login', desc: 'Управление системой и пользователями' },
   ];
 
   const specs = [
@@ -69,6 +50,7 @@ export default function LandingPage() {
     { id: "04130100", full: "Менеджмент", slug: "menedzhment", img: "https://images.unsplash.com/photo-1454165833767-027ffea9e778?q=80&w=600" },
     { id: "04140100", full: "Маркетинг", slug: "marketing", img: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?q=80&w=600" },
     { id: "04120100", full: "Банковское дело", slug: "bankovskoe-delo", img: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=600" },
+    { id: "06120100", full: "Вычислительная техника и информационные сети", slug: "vychislitelnaya-tekhnika", img: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600" },
   ];
 
   if (checking) {
@@ -91,7 +73,7 @@ export default function LandingPage() {
           <div className="hidden lg:flex gap-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
             <Link href="#about" className="hover:text-white transition-colors">О нас</Link>
             <Link href="#specs" className="hover:text-white transition-colors">Специальности</Link>
-            <Link href="#contacts" className="hover:text-white transition-colors text-red-600">Приемная комиссия</Link>
+            <Link href="/admissions" className="hover:text-white transition-colors text-red-600">Приемная комиссия</Link>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -198,7 +180,7 @@ export default function LandingPage() {
           <div>
             <h5 className="font-bold text-xs mb-8 text-white uppercase tracking-widest">О колледже</h5>
             <ul className="text-gray-500 text-xs space-y-4 uppercase font-bold tracking-tighter">
-              <li className="hover:text-red-600 cursor-pointer transition-colors">История</li>
+              <li className="hover:text-red-600 transition-colors"><Link href="/history">История</Link></li>
               <li className="hover:text-red-600 cursor-pointer transition-colors">Антикоррупция</li>
               <li className="hover:text-red-600 cursor-pointer transition-colors">Контакты</li>
               <li className="hover:text-red-600 cursor-pointer transition-colors">Выпускники</li>
@@ -207,9 +189,10 @@ export default function LandingPage() {
           <div>
             <h5 className="font-bold text-xs mb-8 text-white uppercase tracking-widest">Поступающим</h5>
             <ul className="text-gray-500 text-xs space-y-4 uppercase font-bold tracking-tighter">
-              <li className="hover:text-red-600 cursor-pointer transition-colors">Правила приема</li>
-              <li className="hover:text-red-600 cursor-pointer transition-colors">Приемная комиссия</li>
-              <li className="hover:text-red-600 cursor-pointer transition-colors">Стоимость</li>
+              <li className="hover:text-red-600 transition-colors"><Link href="/admissions#terms">Сроки обучения</Link></li>
+              <li className="hover:text-red-600 transition-colors"><Link href="/admissions#docs">Документы</Link></li>
+              <li className="hover:text-red-600 transition-colors"><Link href="/admissions#specs">Специальности</Link></li>
+              <li className="hover:text-red-600 transition-colors"><Link href="/admissions#contacts">Контакты комиссии</Link></li>
             </ul>
           </div>
           <div>
@@ -227,7 +210,7 @@ export default function LandingPage() {
             <div className="space-y-2 text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
               <p>+7 (727) 313-20-28</p>
               <p>info@college-narxoz.kz</p>
-              <p className="mt-4">Алматы, 10-й микрорайон 7А</p>
+              <a href="https://go.2gis.com/clHiL" target="_blank" rel="noopener noreferrer" className="mt-4 block hover:text-red-600 transition-colors">Алматы, 10-й микрорайон 7А</a>
             </div>
           </div>
         </div>
@@ -242,7 +225,6 @@ export default function LandingPage() {
       <AnimatePresence>
         {modalOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               key="backdrop"
               initial={{ opacity: 0 }}
@@ -251,8 +233,6 @@ export default function LandingPage() {
               onClick={() => setModalOpen(false)}
               className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md"
             />
-
-            {/* Modal */}
             <motion.div
               key="modal"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -262,24 +242,18 @@ export default function LandingPage() {
               className="fixed inset-0 z-[201] flex items-center justify-center p-6 pointer-events-none"
             >
               <div className="pointer-events-auto w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[32px] p-8 md:p-12 relative">
-
-                {/* Close */}
                 <button
                   onClick={() => setModalOpen(false)}
                   className="absolute top-6 right-6 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-500 hover:text-white hover:border-white/30 transition-all"
                 >
                   <X size={18} />
                 </button>
-
-                {/* Title */}
                 <div className="mb-10">
                   <p className="text-red-600 font-bold tracking-[0.4em] uppercase text-[9px] mb-3">Narxoz College</p>
                   <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter leading-none">
                     Выберите <br /><span className="text-white/20">роль</span>
                   </h2>
                 </div>
-
-                {/* Role Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {roles.map((role) => {
                     const Icon = role.icon;
@@ -304,7 +278,6 @@ export default function LandingPage() {
                     );
                   })}
                 </div>
-
               </div>
             </motion.div>
           </>
